@@ -9,6 +9,7 @@ import {
   Sparkles,
   Target,
   Trash2,
+  ArrowLeft,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
@@ -274,6 +275,14 @@ export default function RoadmapHistory() {
       </div>
 
       <main className="relative mx-auto max-w-6xl px-5 py-8 sm:px-8 lg:px-10">
+        <button
+    onClick={() => navigate("/dashboard")}
+    className="mb-8 inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 text-sm font-medium text-slate-300 transition hover:border-violet-400/30 hover:bg-white/10 hover:text-white"
+  >
+    <ArrowLeft className="h-4 w-4" />
+    Back to Dashboard
+  </button>
+
 
         {/* HEADER */}
 

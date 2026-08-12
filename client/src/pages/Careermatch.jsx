@@ -5,11 +5,13 @@ import {
   Target,
   FileText,
   Sparkles,
+  ArrowLeft,
   ArrowRight,
   Briefcase,
   CheckCircle2,
   Loader2,
   Upload,
+
 } from "lucide-react";
 
 import toast from "react-hot-toast";
@@ -240,8 +242,15 @@ export default function CareerMatch() {
   return (
     <div className="min-h-screen bg-[#050510] px-6 py-12 text-white">
 
-      <div className="mx-auto max-w-5xl">
+  <div className="mx-auto max-w-5xl">
 
+    <button
+      onClick={() => navigate("/dashboard")}
+      className="mb-8 inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 text-sm font-medium text-gray-300 transition hover:border-violet-500/30 hover:bg-white/10 hover:text-white"
+    >
+      <ArrowLeft size={17} />
+      Back to Dashboard
+    </button>
         {/* ==========================================
             HEADER
         ========================================== */}

@@ -12,6 +12,7 @@ import {
   CheckCircle2,
   Trash2,
   AlertTriangle,
+  ArrowLeft,
 } from "lucide-react";
 
 import {
@@ -271,7 +272,13 @@ export default function ResumeUpload() {
     <div className="min-h-screen bg-[#070712] px-5 py-10 text-white md:px-8">
 
       <div className="mx-auto max-w-5xl">
-
+<button
+  onClick={() => navigate("/dashboard")}
+  className="mb-8 inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 text-sm font-medium text-gray-300 transition hover:border-violet-500/30 hover:bg-white/10 hover:text-white"
+>
+  <ArrowLeft size={17} />
+  Back to Dashboard
+</button>
         {/* ==========================================
             HEADER
         =========================================== */}
