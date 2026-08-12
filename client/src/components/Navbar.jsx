@@ -2,6 +2,7 @@ import {  Menu, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 
+
 export default function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
 const [scrolled, setScrolled] = useState(false);
@@ -114,19 +115,19 @@ useEffect(() => {
 
           <div className="flex flex-col gap-5 text-white">
 
-            <a href="#">Home</a>
+            <a href="#"className="block hover:text-violet-400 transition">Home</a>
 
-            <a href="#features">Features</a>
+            <a href="#features"className="block hover:text-violet-400 transition">Features</a>
 
-            <a href="#how-it-works">How It Works</a>
+            <a href="#how-it-works"className="block hover:text-violet-400 transition">How It Works</a>
 
-            <a href="#contact">Contact</a>
+            <a href="#about" className="block hover:text-violet-400 transition">About</a>
 
-            <button className="mt-4 rounded-xl bg-gradient-to-r from-violet-600 to-cyan-500 py-3">
+            <Link to="/signup"><button className="mt-4 rounded-xl bg-gradient-to-r from-violet-600 to-cyan-500 py-3 ">
 
               Get Started
 
-            </button>
+            </button></Link>
 
           </div>
 

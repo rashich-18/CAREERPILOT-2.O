@@ -26,7 +26,7 @@ export default function Signup() {
 
         <SignupForm />
 
-        <p className="mt-6 text-center text-sm text-gray-400">
+        <div className="mt-6 text-center text-sm text-gray-400">
           Already have an account?
 
 
@@ -40,7 +40,7 @@ export default function Signup() {
           </Link>
           </motion.div>
 
-        </p>
+        </div>
 
       </AuthCard>
     </AuthLayout>
