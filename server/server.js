@@ -8,6 +8,9 @@ import aiRoutes from "./routes/aiRoutes.js";
 import resumeRoutes from "./routes/resumeRoutes.js";
 import careerMatchRoutes from "./routes/careerMatchRoutes.js";
 import roadmapRoutes from "./routes/roadmapRoutes.js";
+import interviewRoutes from "./routes/interviewRoutes.js";
+import jobApplicationRoutes from "./routes/jobApplicationRoutes.js";
+import dashboardRoutes from "./routes/dashboardRoutes.js";
 
 dotenv.config();
 
@@ -24,7 +27,9 @@ app.use("/api/ai", aiRoutes);
 app.use("/api/resume", resumeRoutes);
 app.use("/api/career-match", careerMatchRoutes);
 app.use("/api/roadmap", roadmapRoutes);
-
+app.use("/api/interview", interviewRoutes);
+app.use("/api/job-applications", jobApplicationRoutes);
+app.use("/api/dashboard", dashboardRoutes);
 
 
 app.get("/", (req, res) => {

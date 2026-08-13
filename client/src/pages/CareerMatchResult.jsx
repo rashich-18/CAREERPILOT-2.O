@@ -592,20 +592,7 @@ export default function CareerMatchResult() {
                 {careerMatch.partialMatches?.length || 0}
               </span>
             </button>
-
-            <button
-              onClick={() => changeAssessment("critical")}
-              className={`flex-1 whitespace-nowrap rounded-xl px-4 py-3 text-sm font-medium transition ${
-                assessmentType === "critical"
-                  ? "bg-rose-400/10 text-rose-300"
-                  : "text-slate-500 hover:text-white"
-              }`}
-            >
-              × Gaps
-              <span className="ml-2 opacity-60">
-                {careerMatch.criticalGaps?.length || 0}
-              </span>
-            </button>
+            
           </div>
 
           {/* FLASHCARD */}
@@ -636,7 +623,58 @@ export default function CareerMatchResult() {
             </div>
           )}
         </section>
+{/* ==================================================
+    SKILL GAP
+================================================== */}
 
+{careerMatch.criticalGaps?.length > 0 && (
+  <motion.section
+    initial={{ opacity: 0, y: 20 }}
+    whileInView={{ opacity: 1, y: 0 }}
+    viewport={{ once: true }}
+    className="mt-12"
+  >
+    <div className="mb-6">
+      <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">
+        Skill Gap
+      </p>
+
+      <h2 className="mt-2 text-2xl font-bold">
+        Skills you need to develop
+      </h2>
+
+      <p className="mt-2 text-sm text-slate-500">
+        These are the key skills identified as gaps for your target role.
+      </p>
+    </div>
+
+    <div className="rounded-3xl border border-rose-400/10 bg-[#101423] p-6">
+      <div className="flex flex-wrap gap-3">
+        {careerMatch.criticalGaps.map((item, index) => {
+          const skill =
+            typeof item === "string"
+              ? item
+              : item?.skill ||
+                item?.name ||
+                item?.title ||
+                item?.requirement ||
+                "";
+
+          if (!skill) return null;
+
+          return (
+            <span
+              key={index}
+              className="rounded-xl border border-rose-400/20 bg-rose-400/[0.08] px-4 py-2.5 text-sm font-medium text-rose-200"
+            >
+              {skill}
+            </span>
+          );
+        })}
+      </div>
+    </div>
+  </motion.section>
+)}
         {/* ==================================================
             NEXT STEPS
         ================================================== */}

@@ -20,7 +20,7 @@ export default function About() {
 
           <p className="mx-auto mt-6 max-w-3xl text-lg leading-8 text-gray-400">
             CareerPilot helps students and job seekers improve resumes,
-            increase ATS scores, discover career opportunities, and prepare
+            decrease skill gaps, discover career opportunities, and prepare
             for interviews using AI—all from one platform.
           </p>
 

@@ -1,107 +1,154 @@
-import { FileText, Target, Route, Mic } from "lucide-react";
+import {
+  FileText,
+  Target,
+  Map,
+  Mic2,
+} from "lucide-react";
 
-const stats = [
-  {
-    label: "Resume",
-    value: 82,
-    icon: FileText,
-    color: "from-violet-500 to-fuchsia-500",
-  },
-  {
-    label: "ATS",
-    value: 76,
-    icon: Target,
-    color: "from-cyan-500 to-blue-500",
-  },
-  {
-    label: "Roadmap",
-    value: 42,
-    icon: Route,
-    color: "from-emerald-500 to-green-500",
-  },
-  {
-    label: "Interview",
-    value: 18,
-    icon: Mic,
-    color: "from-amber-500 to-orange-500",
-  },
-];
+export default function CareerSnapshot({ data, loading }) {
+  const resume = data?.resumes?.[0];
+  const match = data?.careerMatches?.[0];
+  const roadmap = data?.roadmaps?.[0];
+  const interviews = data?.interviews || [];
 
-export default function CareerSnapshot() {
-  const overall = Math.round(
-    stats.reduce((sum, item) => sum + item.value, 0) / stats.length
-  );
+  const resumeScore =
+    resume?.score ??
+    resume?.resumeScore ??
+    resume?.overallScore ??
+    0;
+
+  const matchScore =
+    match?.matchPercentage ??
+    match?.matchScore ??
+    match?.score ??
+    0;
+
+  const completed =
+    roadmap?.completedMilestones ??
+    roadmap?.completed ??
+    0;
+
+  const total =
+    roadmap?.totalMilestones ??
+    roadmap?.total ??
+    roadmap?.milestones?.length ??
+    0;
+
+  const roadmapProgress =
+    total > 0
+      ? Math.round((completed / total) * 100)
+      : roadmap?.progress ?? 0;
+
+  const interviewCount = interviews.length;
+
+  const latestInterview = interviews[0];
+
+  const interviewScore =
+    latestInterview?.score ??
+    latestInterview?.percentage ??
+    0;
+
+  const stats = [
+    {
+      label: "Resume",
+      value: `${resumeScore}/100`,
+      subtitle: resume ? "Analyzed ✓" : "Not analyzed",
+      icon: FileText,
+      iconClass: "text-violet-400",
+      bgClass: "bg-violet-500/10",
+    },
+    {
+      label: "Career Match",
+      value: `${matchScore}%`,
+      subtitle:
+        matchScore >= 70
+          ? "Good match"
+          : matchScore > 0
+          ? "Needs improvement"
+          : "Not generated",
+      icon: Target,
+      iconClass: "text-cyan-400",
+      bgClass: "bg-cyan-500/10",
+    },
+    {
+      label: "Roadmap",
+      value: `${roadmapProgress}%`,
+      subtitle:
+        roadmapProgress > 0
+          ? "In progress"
+          : "Not started",
+      icon: Map,
+      iconClass: "text-emerald-400",
+      bgClass: "bg-emerald-500/10",
+    },
+    {
+      label: "Interview",
+      value: `${interviewCount} done`,
+      subtitle:
+        interviewCount > 0
+          ? `Latest: ${interviewScore}%`
+          : "Start practicing",
+      icon: Mic2,
+      iconClass: "text-amber-400",
+      bgClass: "bg-amber-500/10",
+    },
+  ];
+
+  if (loading) {
+    return (
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        {[1, 2, 3, 4].map((item) => (
+          <div
+            key={item}
+            className="h-36 animate-pulse rounded-2xl border border-white/10 bg-white/[0.03]"
+          />
+        ))}
+      </div>
+    );
+  }
 
   return (
-    <div className="rounded-3xl border border-white/10 bg-white/5 p-6 backdrop-blur-xl">
-      <div className="mb-6 flex items-start justify-between">
-        <div>
-          <p className="text-xs font-semibold uppercase tracking-[3px] text-violet-300">
-            AI Career Snapshot
-          </p>
-          <h2 className="mt-2 text-2xl font-bold text-white">
-            Internship Readiness
-          </h2>
-        </div>
+    <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      {stats.map((stat) => {
+        const Icon = stat.icon;
 
-        <div className="rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-center">
-          <p className="text-[11px] uppercase tracking-[2px] text-gray-400">
-            Overall
-          </p>
-          <p className="mt-1 text-2xl font-bold text-white">{overall}%</p>
-        </div>
-      </div>
+        return (
+          <div
+            key={stat.label}
+            className="group rounded-2xl border border-white/10 bg-white/[0.03] p-5 backdrop-blur-xl transition-all duration-300 hover:-translate-y-1 hover:border-white/20 hover:bg-white/[0.05]"
+          >
+            <div className="flex items-start justify-between">
 
-      <div className="space-y-5">
-        {stats.map((item) => {
-          const Icon = item.icon;
-
-          return (
-            <div key={item.label}>
-              <div className="mb-2 flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div
-                    className={`flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br ${item.color} shadow-lg`}
-                  >
-                    <Icon size={18} className="text-white" />
-                  </div>
-
-                  <div>
-                    <p className="font-medium text-white">{item.label}</p>
-                    <p className="text-sm text-gray-400">
-                      {item.label === "Interview"
-                        ? "Start practicing"
-                        : item.label === "Roadmap"
-                        ? "In progress"
-                        : "Looking good"}
-                    </p>
-                  </div>
-                </div>
-
-                <span className="text-sm font-semibold text-white">
-                  {item.value}%
-                </span>
-              </div>
-
-              <div className="h-2 rounded-full bg-white/10">
-                <div
-                  className={`h-full rounded-full bg-gradient-to-r ${item.color} transition-all duration-700`}
-                  style={{ width: `${item.value}%` }}
+              <div
+                className={`flex h-11 w-11 items-center justify-center rounded-xl ${stat.bgClass}`}
+              >
+                <Icon
+                  size={20}
+                  className={stat.iconClass}
                 />
               </div>
-            </div>
-          );
-        })}
-      </div>
 
-      <div className="mt-6 rounded-2xl border border-violet-500/20 bg-gradient-to-r from-violet-500/10 to-cyan-500/10 p-4">
-        <p className="text-sm font-medium text-white">
-          Your strongest area is <span className="text-violet-300">Resume Quality</span>.
-        </p>
-        <p className="mt-1 text-sm text-gray-300">
-          Focus on interview practice to improve your overall readiness the fastest.
-        </p>
-      </div>
+              <span className="text-xs text-gray-600">
+                AI
+              </span>
+
+            </div>
+
+            <p className="mt-5 text-sm text-gray-400">
+              {stat.label}
+            </p>
+
+            <p className="mt-1 text-2xl font-bold text-white">
+              {stat.value}
+            </p>
+
+            <p className="mt-1 text-xs text-gray-500">
+              {stat.subtitle}
+            </p>
+
+          </div>
+        );
+      })}
     </div>
   );
 }

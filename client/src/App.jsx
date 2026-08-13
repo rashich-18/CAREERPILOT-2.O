@@ -20,6 +20,11 @@ import Features from "./components/Features";
 import Profile from "./pages/Profile";
 import CareerMatch from "./pages/CareerMatch";
 import CareerMatchResult from "./pages/CareerMatchResult";
+import Interview from "./pages/Interview";
+import InterviewRoom from "./pages/InterviewRoom";
+import InterviewReport from "./pages/InterviewReport";
+import JobApplication from "./pages/JobApplication";
+import JobApplicationResult from "./pages/JobApplicationResult";
 
 function AnimatedRoutes() {
   const location = useLocation();
@@ -66,6 +71,21 @@ function AnimatedRoutes() {
           path="/roadmap/:id"
           element={<Roadmap />}
         />
+
+        <Route
+  path="/job-application"
+  element={<JobApplication />}
+/>
+
+<Route
+  path="/job-application/:id"
+  element={<JobApplicationResult />}
+/>
+
+
+        <Route path="/interview" element={<Interview />} />
+        <Route path="/interview/:id" element={<InterviewRoom />} />
+        <Route path="/interview/:id/report" element={<InterviewReport />}/>
       </Routes>
     </AnimatePresence>
   );

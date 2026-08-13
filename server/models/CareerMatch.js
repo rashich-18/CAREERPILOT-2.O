@@ -68,6 +68,12 @@ const careerMatchSchema = new mongoose.Schema(
       default: [],
     },
 
+    skillsToDevelop: {
+  type: [String],
+  default: [],
+},
+
+
     hiddenGaps: {
       type: [String],
       default: [],

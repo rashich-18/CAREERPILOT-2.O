@@ -109,6 +109,24 @@ export const completeOnboarding = async (req, res) => {
 
     const user = await User.findById(userId);
 
+    // ==========================================
+// PROFILE PICTURE
+// ==========================================
+
+if (
+  req.files &&
+  req.files.profilePicture &&
+  req.files.profilePicture[0]
+) {
+  const imageFile = req.files.profilePicture[0];
+
+  const base64Image = `data:${imageFile.mimetype};base64,${imageFile.buffer.toString(
+    "base64"
+  )}`;
+
+  user.profilePicture = base64Image;
+}
+
     if (!user) {
 
       return res.status(404).json({
@@ -317,6 +335,8 @@ export const getProfile = async (req, res) => {
         name: user.name,
         email: user.email,
 
+        profilePicture: user.profilePicture,
+
         education: user.education,
         career: user.career,
 
@@ -380,6 +400,8 @@ export const updateProfile = async (req, res) => {
       codeforces,
       codechef,
       hackerrank,
+
+      removeProfilePicture,
     } = req.body;
 
     const user = await User.findById(userId);
@@ -390,6 +412,21 @@ export const updateProfile = async (req, res) => {
         message: "User not found.",
       });
     }
+
+  // ==========================================
+// PROFILE PICTURE
+// ==========================================
+
+if (req.file) {
+  user.profilePicture = `data:${req.file.mimetype};base64,${req.file.buffer.toString(
+    "base64"
+  )}`;
+}
+
+if (removeProfilePicture === true || removeProfilePicture === "true") {
+  user.profilePicture = "";
+}
+
 
     // ================= BASIC INFO =================
 
@@ -408,7 +445,15 @@ export const updateProfile = async (req, res) => {
       customBranch: customBranch?.trim() || "",
       graduationYear,
       cgpa: cgpa ? Number(cgpa) : undefined,
-    };
+
+      // KEEP EXISTING PICTURE
+
+      profilePicture:
+  req.file
+    ? `data:${req.file.mimetype};base64,${req.file.buffer.toString(
+        "base64"
+      )}`
+    : user.education?.profilePicture || "",};
 
     // ================= CAREER =================
 

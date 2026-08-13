@@ -47,7 +47,7 @@ export default function Login() {
             </span>
 
             <span className="rounded-full border border-cyan-500/30 bg-cyan-500/10 px-4 py-2 text-sm text-cyan-300">
-              ATS Score
+              AI Career Matching
             </span>
 
             <span className="rounded-full border border-pink-500/30 bg-pink-500/10 px-4 py-2 text-sm text-pink-300">

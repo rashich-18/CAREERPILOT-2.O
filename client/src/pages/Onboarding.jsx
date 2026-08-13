@@ -184,6 +184,19 @@ export default function Onboarding() {
       data.append("hackerrank", formData.hackerrank);
 
       // ==========================================
+// FILES
+// ==========================================
+
+if (formData.resume) {
+  data.append("resume", formData.resume);
+}
+
+if (formData.profilePicture) {
+  data.append("profilePicture", formData.profilePicture);
+}
+
+
+      // ==========================================
       // SEND TO BACKEND
       // ==========================================
 
@@ -251,7 +264,10 @@ export default function Onboarding() {
         <div className="mt-10">
 
           {step === 1 && (
-            <Step1 />
+            <Step1
+              formData={formData}
+              updateFormData={updateFormData}
+            />
           )}
 
           {step === 2 && (

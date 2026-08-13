@@ -38,9 +38,9 @@ const menuItems = [
 },
 
   {
-    title: "Jobs",
+    title: "Job Applications",
     icon: BriefcaseBusiness,
-    path: "/jobs",
+    path: "/job-application",
   },
   {
     title: "Interview AI",
@@ -48,24 +48,9 @@ const menuItems = [
     path: "/interview",
   },
   {
-    title: "AI Mentor",
-    icon: Bot,
-    path: "/mentor",
-  },
-  {
-    title: "Progress",
-    icon: BarChart3,
-    path: "/progress",
-  },
-  {
     title: "Profile",
     icon: User,
     path: "/profile",
-  },
-  {
-    title: "Settings",
-    icon: Settings,
-    path: "/settings",
   },
 ];
 

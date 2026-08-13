@@ -1,152 +1,167 @@
-{/*import { motion } from "framer-motion";
-import { Sparkles } from "lucide-react";
+import { ArrowRight, Sparkles } from "lucide-react";
+import { motion } from "framer-motion";
 
-export default function WelcomeBanner() {
+export default function WelcomeBanner({ data, loading }) {
+  const user = JSON.parse(
+    localStorage.getItem("user") || "{}"
+  );
+
+  const hour = new Date().getHours();
+
+  const greeting =
+    hour < 12
+      ? "Good morning"
+      : hour < 18
+      ? "Good afternoon"
+      : "Good evening";
+
+  const name = user?.name || "there";
+
+  const resume = data?.resumes?.[0];
+  const match = data?.careerMatches?.[0];
+  const roadmap = data?.roadmaps?.[0];
+
+  const resumeScore =
+    resume?.score ??
+    resume?.resumeScore ??
+    resume?.overallScore ??
+    0;
+
+  const matchScore =
+    match?.matchPercentage ??
+    match?.matchScore ??
+    match?.score ??
+    0;
+
+  const completed =
+    roadmap?.completedMilestones ??
+    roadmap?.completed ??
+    0;
+
+  const total =
+    roadmap?.totalMilestones ??
+    roadmap?.total ??
+    roadmap?.milestones?.length ??
+    0;
+
+  const roadmapProgress =
+    total > 0
+      ? Math.round((completed / total) * 100)
+      : roadmap?.progress ?? 0;
+
+  const readinessValues = [
+    resumeScore,
+    matchScore,
+    roadmapProgress,
+  ].filter((value) => value > 0);
+
+  const readiness =
+    readinessValues.length > 0
+      ? Math.round(
+          readinessValues.reduce(
+            (sum, value) => sum + value,
+            0
+          ) / readinessValues.length
+        )
+      : 0;
+
   return (
     <motion.div
-      initial={{ opacity: 0, y: 25 }}
+      initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.6 }}
-      className="relative overflow-hidden rounded-3xl border border-white/10 bg-white/5 p-8 backdrop-blur-xl"
+      className="relative overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-r from-[#141827] via-[#171b2d] to-[#24163f] p-8"
     >
-      {/* Glow */}
-      {/*<div className="absolute -top-24 -right-20 h-64 w-64 rounded-full bg-violet-500/20 blur-3xl" />
+
+      <div className="absolute -right-24 -top-24 h-72 w-72 rounded-full bg-violet-500/15 blur-3xl" />
+
+      <div className="absolute -bottom-24 right-32 h-60 w-60 rounded-full bg-cyan-500/10 blur-3xl" />
 
       <div className="relative z-10">
 
-        <div className="flex items-center gap-3">
+        <div className="flex flex-col gap-8 lg:flex-row lg:items-center lg:justify-between">
 
-          <div className="rounded-xl bg-violet-500/20 p-3">
-            <Sparkles className="text-violet-300" />
-          </div>
+          <div className="max-w-2xl">
 
-          <div>
-            <h1 className="text-3xl font-bold text-white">
-              Welcome Back, Rashi 👋
+            <div className="mb-4 flex items-center gap-2">
+
+              <Sparkles
+                size={19}
+                className="text-violet-400"
+              />
+
+              <span className="text-sm uppercase tracking-[3px] text-violet-300">
+                CareerPilot AI
+              </span>
+
+            </div>
+
+            <h1 className="text-4xl font-bold text-white sm:text-5xl">
+              {greeting},{" "}
+              <span className="bg-gradient-to-r from-violet-400 to-cyan-400 bg-clip-text text-transparent">
+                {name} 👋
+              </span>
             </h1>
 
-            <p className="mt-2 text-gray-400">
-              Your AI Career Coach is ready to help you land your dream job.
+            <p className="mt-4 text-lg text-gray-400">
+              Here's your career progress at a glance.
             </p>
 
-          </div>
+            <div className="mt-8">
 
-        </div>
+              <div className="mb-2 flex items-center justify-between">
 
-      </div>
-    </motion.div>
-  );
-}*/}
+                <span className="text-sm font-medium text-gray-300">
+                  Career readiness
+                </span>
 
+                <span className="text-sm font-bold text-violet-300">
+                  {loading ? "--" : `${readiness}%`}
+                </span>
 
+              </div>
 
+              <div className="h-3 overflow-hidden rounded-full bg-white/10">
 
-import { ArrowRight, Briefcase, Sparkles } from "lucide-react";
-import { motion } from "framer-motion";
+                <div
+                  className="h-full rounded-full bg-gradient-to-r from-violet-500 to-cyan-400 transition-all duration-1000"
+                  style={{
+                    width: `${readiness}%`,
+                  }}
+                />
 
-export default function HeroCard() {
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 25 }}
-      animate={{ opacity: 1, y: 0 }}
-      className="overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-r from-[#141827] via-[#171b2d] to-[#24163f] p-8"
-    >
-      <div className="flex flex-col gap-8 lg:flex-row lg:items-center lg:justify-between">
+              </div>
 
-        {/* LEFT */}
-
-        <div>
-
-          <div className="mb-4 flex items-center gap-2">
-
-            <Sparkles
-              size={20}
-              className="text-violet-400"
-            />
-
-            <p className="text-sm uppercase tracking-[4px] text-violet-300">
-              CareerPilot AI
-            </p>
-
-          </div>
-
-          <h1 className="text-5xl font-bold text-white">
-
-            Good Evening,
-            <br />
-
-            <span className="bg-gradient-to-r from-violet-400 to-cyan-400 bg-clip-text text-transparent">
-              Rashi 👋
-            </span>
-
-          </h1>
-
-          <p className="mt-5 max-w-xl text-lg text-gray-400">
-
-            You're building your journey toward becoming a
-            Software Engineer at Google.
-
-          </p>
-
-        </div>
-
-        {/* RIGHT */}
-
-        <div className="w-full max-w-sm rounded-2xl border border-white/10 bg-white/5 p-6 backdrop-blur-xl">
-
-          <div className="flex items-center gap-3">
-
-            <Briefcase
-              className="text-cyan-400"
-            />
-
-            <div>
-
-              <p className="text-sm text-gray-400">
-                Dream Company
+              <p className="mt-3 text-sm text-gray-500">
+                {readiness >= 70
+                  ? "You're making strong progress toward your target role."
+                  : readiness > 0
+                  ? "You're making steady progress toward your target role."
+                  : "Complete your profile and career analysis to get started."}
               </p>
 
-              <h3 className="text-lg font-semibold text-white">
-                Google
-              </h3>
-
             </div>
 
           </div>
 
-          <div className="mt-8">
+          {/* Career visual */}
 
-            <div className="mb-2 flex justify-between text-sm">
+          <div className="hidden h-44 w-44 shrink-0 items-center justify-center rounded-full border border-violet-500/20 bg-violet-500/5 lg:flex">
 
-              <span className="text-gray-400">
-                Career Progress
-              </span>
+            <div className="flex h-32 w-32 items-center justify-center rounded-full border border-cyan-400/20 bg-gradient-to-br from-violet-500/10 to-cyan-500/10">
 
-              <span className="text-violet-300">
-                38%
-              </span>
-
-            </div>
-
-            <div className="h-2 rounded-full bg-white/10">
-
-              <div className="h-full w-[38%] rounded-full bg-gradient-to-r from-violet-500 to-cyan-400" />
+              <Sparkles
+                size={42}
+                className="text-violet-300"
+              />
 
             </div>
 
           </div>
-
-          <button className="mt-8 flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-violet-600 to-cyan-500 py-3 font-semibold text-white transition hover:scale-[1.02]">
-
-            Continue Journey
-
-            <ArrowRight size={18} />
-
-          </button>
 
         </div>
 
       </div>
+
     </motion.div>
   );
 }

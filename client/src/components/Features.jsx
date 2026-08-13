@@ -49,7 +49,7 @@ export default function Features() {
             </h3>
 
             <p className="mt-4 max-w-lg text-gray-400 leading-7">
-              Upload your resume and instantly receive an ATS score,
+              Upload your resume and instantly receive an job match,
               personalized feedback, keyword suggestions and actionable
               improvements.
             </p>
@@ -98,34 +98,34 @@ export default function Features() {
             <ChartColumn size={34} className="text-green-400" />
 
             <h3 className="mt-6 text-3xl font-bold">
-              Skill Gap Analysis
-            </h3>
+  Career Match
+</h3>
 
-            <p className="mt-4 max-w-xl text-gray-400 leading-7">
-              Discover missing technologies, certifications and
-              industry-relevant skills to improve your chances of
-              getting shortlisted.
-            </p>
+<p className="mt-4 max-w-xl text-gray-400 leading-7">
+  See how well your skills match a specific role,
+  discover the skills you already have, and identify what you
+  need to develop before applying.
+</p>
 
-            <div className="mt-0 flex flex-wrap gap-3">
+<div className="mt-0 flex flex-wrap gap-3">
+  <span className="rounded-full bg-violet-500/20 px-4 py-2 text-sm text-violet-300">
+    Strong Match
+  </span>
 
-              <span className="rounded-full bg-violet-500/20 px-4 py-2 text-sm text-violet-300">
-                React
-              </span>
+  <span className="rounded-full bg-cyan-500/20 px-4 py-2 text-sm text-cyan-300">
+    Partial Match
+  </span>
 
-              <span className="rounded-full bg-cyan-500/20 px-4 py-2 text-sm text-cyan-300">
-                Node.js
-              </span>
+  <span className="rounded-full bg-pink-500/20 px-4 py-2 text-sm text-pink-300">
+    Skills to Develop
+  </span>
 
-              <span className="rounded-full bg-pink-500/20 px-4 py-2 text-sm text-pink-300">
-                MongoDB
-              </span>
+  <span className="rounded-full bg-green-500/20 px-4 py-2 text-sm text-green-300">
+    Apply Recommendation
+  </span>
 
-              <span className="rounded-full bg-green-500/20 px-4 py-2 text-sm text-green-300">
-                AWS
-              </span>
-
-            </div>
+</div>
+            
 
           </div>
 

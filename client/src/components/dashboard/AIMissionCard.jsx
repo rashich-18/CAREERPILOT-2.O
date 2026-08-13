@@ -56,8 +56,8 @@ export default function AIMissionCard() {
 
           <p className="mt-3 max-w-xl text-gray-400">
             Upload your resume to unlock AI Resume Analysis,
-            Skill Gap Detection, Personalized Roadmap,
-            ATS Score and Interview Preparation.
+            Career Matching, Personalized Roadmap,
+            And Interview Preparation.
           </p>
 
           <div className="mt-8 flex flex-wrap gap-4">

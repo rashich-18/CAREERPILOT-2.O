@@ -15,7 +15,7 @@ const steps = [
     icon: BrainCircuit,
     title: "AI Analysis",
     description:
-      "Our AI evaluates ATS score, skills, experience and identifies improvement areas.",
+      "Our AI evaluates your skills, experience and identifies improvement areas.",
   },
   {
     icon: Rocket,

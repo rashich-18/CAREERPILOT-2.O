@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef, } from "react";
 import { motion } from "framer-motion";
 import {
   User,
@@ -10,8 +10,13 @@ import {
   Pencil,
   Code2,
   Heart,
+  ArrowLeft,
   X,
+  Loader2,
+  Trash2,
 } from "lucide-react";
+
+import { useNavigate } from "react-router-dom";
 
 import { FaGithub, FaLinkedin } from "react-icons/fa";
 
@@ -19,11 +24,16 @@ import API from "../api/profileApi";
 import toast from "react-hot-toast";
 
 export default function Profile() {
+  const navigate = useNavigate();
   const [profile, setProfile] = useState(null);
 
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState(false);
   const [saving, setSaving] = useState(false);
+  const fileInputRef = useRef(null);
+
+const [uploadingPicture, setUploadingPicture] =
+  useState(false);
 
   // ==========================================
   // FETCH PROFILE
@@ -50,10 +60,16 @@ export default function Profile() {
 
       if (response.data.success) {
         const user = response.data.user;
+        console.log("USER FROM BACKEND:", user);
+console.log(
+  "PROFILE PICTURE FROM BACKEND:",
+  user.education?.profilePicture
+);
 
         setProfile({
           fullName: user.name || "",
           email: user.email || "",
+          profilePicture: user.profilePicture || "",
 
           college: user.education?.college || "",
           degree: user.education?.degree || "",
@@ -105,24 +121,142 @@ export default function Profile() {
     }
   };
 
-  // ==========================================
-  // HANDLE INPUT
-  // ==========================================
+// ==========================================
+// HANDLE INPUT
+// ==========================================
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
+const handleChange = (e) => {
+  const { name, value } = e.target;
 
-    setProfile((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-  };
+  setProfile((prev) => ({
+    ...prev,
+    [name]: value,
+  }));
+};
 
-  // ==========================================
-  // HANDLE SAVE
-  // ==========================================
 
-  const handleSubmit = async (e) => {
+// ==========================================
+// HANDLE PROFILE PICTURE
+// ==========================================
+
+const handleProfilePictureChange = async (e) => {
+  const file = e.target.files?.[0];
+
+  if (!file) return;
+
+  // Validate image
+  if (!file.type.startsWith("image/")) {
+    toast.error("Please select an image file.");
+    return;
+  }
+
+  // Max 2MB
+  if (file.size > 2 * 1024 * 1024) {
+    toast.error(
+      "Profile picture must be smaller than 2 MB."
+    );
+    return;
+  }
+
+  try {
+    setUploadingPicture(true);
+
+    const token = localStorage.getItem("token");
+
+    if (!token) {
+      toast.error("Please login again.");
+      navigate("/login");
+      return;
+    }
+
+    const data = new FormData();
+
+    data.append("profilePicture", file);
+
+    const response = await API.put(
+      "/profile",
+      data,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
+    if (response.data.success) {
+      toast.success(
+        "Profile picture updated!"
+      );
+
+      await fetchProfile();
+    }
+
+  } catch (error) {
+    console.error(
+      "PROFILE PICTURE ERROR:",
+      error
+    );
+
+    toast.error(
+      error.response?.data?.message ||
+        "Failed to update profile picture."
+    );
+
+  } finally {
+    setUploadingPicture(false);
+
+    // Allow selecting the same file again
+    e.target.value = "";
+  }
+};
+
+// ==========================================
+// HANDLE REMOVE PROFILE PICTURE
+// ==========================================
+const handleRemoveProfilePicture = async () => {
+  try {
+    setUploadingPicture(true);
+
+    const token = localStorage.getItem("token");
+
+    if (!token) {
+      toast.error("Please login again.");
+      navigate("/login");
+      return;
+    }
+
+    const response = await API.put(
+      "/profile",
+      { removeProfilePicture: true },
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
+    if (response.data.success) {
+      toast.success("Profile picture removed!");
+
+      await fetchProfile();
+    }
+  } catch (error) {
+    console.error("REMOVE PROFILE PICTURE ERROR:", error);
+
+    toast.error(
+      error.response?.data?.message ||
+        "Failed to remove profile picture."
+    );
+  } finally {
+    setUploadingPicture(false);
+  }
+};
+
+// ==========================================
+// HANDLE SAVE
+// ==========================================
+
+const handleSubmit = async (e) => {
     e.preventDefault();
 
     try {
@@ -233,6 +367,14 @@ export default function Profile() {
 
       <div className="mx-auto max-w-6xl">
 
+        <button
+      onClick={() => navigate("/dashboard")}
+      className="mb-8 inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 text-sm font-medium text-gray-300 transition hover:border-violet-500/30 hover:bg-white/10 hover:text-white"
+    >
+      <ArrowLeft size={17} />
+      Back to Dashboard
+    </button>
+
         {/* ================================= */}
         {/* HEADER */}
         {/* ================================= */}
@@ -295,126 +437,115 @@ export default function Profile() {
           {/* ================================= */}
 
           <ProfileCard
-            icon={<User size={18} />}
-            title="Personal Information"
-            description="Your basic profile details"
-          >
+  icon={<User size={18} />}
+  title="Personal Information"
+  description="Your basic profile details"
+>
+  <div className="flex flex-col gap-6 sm:flex-row sm:items-center">
 
-            <div className="flex flex-col gap-6 sm:flex-row sm:items-center">
+    {/* AVATAR */}
 
-              {/* AVATAR */}
+    <div className="relative shrink-0">
 
-              <div className="relative shrink-0">
+      <button
+        type="button"
+        onClick={() => fileInputRef.current?.click()}
+        disabled={uploadingPicture}
+        className="group relative flex h-24 w-24 items-center justify-center overflow-hidden rounded-3xl border border-white/[0.08] bg-gradient-to-br from-violet-600/20 to-cyan-500/10"
+      >
+        {profile.profilePicture ? (
+          <img
+            src={profile.profilePicture}
+            alt="Profile"
+            className="h-full w-full object-cover"
+          />
+        ) : (
+          <span className="text-3xl font-semibold text-violet-300">
+            {profile.fullName
+              ?.charAt(0)
+              ?.toUpperCase() || "U"}
+          </span>
+        )}
 
-                <div className="flex h-24 w-24 items-center justify-center overflow-hidden rounded-3xl border border-white/[0.08] bg-gradient-to-br from-violet-600/20 to-cyan-500/10">
+        {/* Hover overlay */}
 
-                  <span className="text-3xl font-semibold text-violet-300">
-                    {profile.fullName
-                      ?.charAt(0)
-                      ?.toUpperCase() || "U"}
-                  </span>
+        <div className="absolute inset-0 flex items-center justify-center bg-black/50 opacity-0 transition group-hover:opacity-100">
+          <Camera
+            size={20}
+            className="text-white"
+          />
+        </div>
+      </button>
 
-                </div>
+      {/* Camera button */}
 
-                {editing && (
-                  <button
-                    type="button"
-                    className="absolute -bottom-2 -right-2 flex h-9 w-9 items-center justify-center rounded-xl border border-[#070914] bg-violet-600 text-white transition hover:bg-violet-500"
-                  >
-                    <Camera size={16} />
-                  </button>
-                )}
+      <button
+        type="button"
+        onClick={() => fileInputRef.current?.click()}
+        disabled={uploadingPicture}
+        className="absolute -bottom-0.5 -right-2 flex h-9 w-9 items-center justify-center rounded-xl border border-[#070914] bg-violet-600 text-white transition hover:bg-violet-500 disabled:opacity-50"
+      >
+        {uploadingPicture ? (
+          <Loader2
+            size={15}
+            className="animate-spin"
+          />
+        ) : (
+          <Camera size={16} />
+        )}
+      </button>
 
-              </div>
+     {/* Remove button - only visible in edit mode */}
+{editing && profile.profilePicture && (
+  <button
+    type="button"
+    onClick={handleRemoveProfilePicture}
+    disabled={uploadingPicture}
+    className="mt-3  flex h-9 w-9  items-center justify-center gap-1.5 rounded-lg border border-red-500/20 bg-red-500/10 px-2 py-1.5 text-xs font-medium text-red-300 transition hover:bg-red-500/20 disabled:opacity-50"
+  >
+    <Trash2 size={10} />
+  </button>
+)}
 
-              <div className="grid flex-1 gap-5 sm:grid-cols-2">
+      {/* Hidden file input */}
 
-                <Input
-                  label="Full Name"
-                  name="fullName"
-                  value={profile.fullName}
-                  onChange={handleChange}
-                  placeholder="Your full name"
-                  disabled={!editing}
-                />
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/png,image/jpeg,image/webp"
+        onChange={handleProfilePictureChange}
+        className="hidden"
+      />
 
-                <Input
-                  label="Email"
-                  name="email"
-                  value={profile.email}
-                  onChange={handleChange}
-                  placeholder="you@example.com"
-                  type="email"
-                  disabled
-                />
+    </div>
 
-              </div>
+    {/* NAME + EMAIL */}
 
-            </div>
+    <div className="grid flex-1 gap-5 sm:grid-cols-2">
 
-          </ProfileCard>
+      <Input
+        label="Full Name"
+        name="fullName"
+        value={profile.fullName}
+        onChange={handleChange}
+        placeholder="Your full name"
+        disabled={!editing}
+      />
 
-          {/* ================================= */}
-          {/* EDUCATION */}
-          {/* ================================= */}
+      <Input
+        label="Email"
+        name="email"
+        value={profile.email}
+        onChange={handleChange}
+        placeholder="you@example.com"
+        type="email"
+        disabled
+      />
 
-          <ProfileCard
-            icon={<GraduationCap size={18} />}
-            title="Education"
-            description="Your academic background"
-          >
+    </div>
 
-            <div className="grid gap-5 sm:grid-cols-2">
-
-              <Input
-                label="College / University"
-                name="college"
-                value={profile.college}
-                onChange={handleChange}
-                placeholder="Your college"
-                disabled={!editing}
-              />
-
-              <Input
-                label="Degree"
-                name="degree"
-                value={profile.degree}
-                onChange={handleChange}
-                placeholder="B.Tech"
-                disabled={!editing}
-              />
-
-              <Input
-                label="Branch"
-                name="branch"
-                value={profile.branch}
-                onChange={handleChange}
-                placeholder="Computer Science"
-                disabled={!editing}
-              />
-
-              <Input
-                label="Graduation Year"
-                name="graduationYear"
-                value={profile.graduationYear}
-                onChange={handleChange}
-                placeholder="2028"
-                disabled={!editing}
-              />
-
-              <Input
-                label="Current CGPA"
-                name="cgpa"
-                value={profile.cgpa}
-                onChange={handleChange}
-                placeholder="8.50"
-                type="number"
-                disabled={!editing}
-              />
-
-            </div>
-
-          </ProfileCard>
+  </div>
+</ProfileCard>
 
           {/* ================================= */}
           {/* CAREER */}

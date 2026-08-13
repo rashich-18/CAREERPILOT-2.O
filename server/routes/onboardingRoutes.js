@@ -46,6 +46,7 @@ router.get(
 router.put(
   "/profile",
   protect,
+  upload.single("profilePicture"),
   updateProfile
 );
 

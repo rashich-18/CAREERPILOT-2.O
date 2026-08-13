@@ -25,6 +25,11 @@ const userSchema = new mongoose.Schema(
       required: [true, "Password is required"],
       minlength: 8,
     },
+    
+    profilePicture: {
+  type: String,
+},
+
 
 
     // ================= ONBOARDING =================
@@ -76,9 +81,6 @@ const userSchema = new mongoose.Schema(
         type: Number,
       },
 
-      profilePicture: {
-        type: String,
-      },
     },
 
 
