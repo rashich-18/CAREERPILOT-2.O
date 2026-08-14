@@ -1,135 +1,641 @@
 import { motion } from "framer-motion";
+import { useEffect, useState } from "react";
 import {
-  Search,
-  Bell,
   Sparkles,
   CalendarDays,
   ChevronDown,
+  LogOut,
+  User,
 } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 export default function TopNavbar() {
-  const user = JSON.parse(localStorage.getItem("user"));
+  const navigate = useNavigate();
+
+  const [menuOpen, setMenuOpen] = useState(false);
+
+  // =========================================================
+  // USER
+  // =========================================================
+
+  const [user, setUser] = useState(() =>
+    JSON.parse(localStorage.getItem("user") || "{}")
+  );
+
+  // =========================================================
+  // REFRESH USER WHEN PROFILE IS UPDATED
+  // =========================================================
+
+  useEffect(() => {
+    const handleUserUpdate = () => {
+      setUser(
+        JSON.parse(
+          localStorage.getItem("user") || "{}"
+        )
+      );
+    };
+
+    window.addEventListener(
+      "userUpdated",
+      handleUserUpdate
+    );
+
+    return () => {
+      window.removeEventListener(
+        "userUpdated",
+        handleUserUpdate
+      );
+    };
+  }, []);
+
+  // =========================================================
+  // USER DATA
+  // =========================================================
+
+  const userName = user?.name || "User";
+
+  const firstName =
+    userName.split(" ")[0] || "User";
+
+  const initial =
+    userName.charAt(0).toUpperCase() || "U";
+
+  // =========================================================
+  // PROFILE IMAGE
+  //
+  // Supports the most common field names.
+  // =========================================================
+
+  const profileImage =
+    user?.profilePic ||
+    user?.profileImage ||
+    user?.profilePicture ||
+    user?.profilePhoto ||
+    user?.avatar ||
+    user?.avatarUrl ||
+    null;
+
+  // =========================================================
+  // GREETING
+  // =========================================================
 
   const hour = new Date().getHours();
 
   const greeting =
     hour < 12
-      ? "Good Morning ☀️"
+      ? "Good morning"
       : hour < 18
-      ? "Good Afternoon 🌤️"
-      : "Good Evening 🌙";
+      ? "Good afternoon"
+      : "Good evening";
 
-  const today = new Date().toLocaleDateString("en-US", {
-    weekday: "long",
-    day: "numeric",
-    month: "long",
-  });
+  // =========================================================
+  // DATE
+  // =========================================================
+
+  const today = new Date().toLocaleDateString(
+    "en-US",
+    {
+      weekday: "long",
+      day: "numeric",
+      month: "long",
+    }
+  );
+
+  // =========================================================
+  // PROFILE
+  // =========================================================
+
+  const handleProfile = () => {
+    setMenuOpen(false);
+    navigate("/profile");
+  };
+
+  // =========================================================
+  // LOGOUT
+  // =========================================================
+
+  const handleLogout = () => {
+    localStorage.removeItem("user");
+    localStorage.removeItem("token");
+    localStorage.removeItem("authToken");
+
+    setMenuOpen(false);
+
+    navigate("/login");
+  };
 
   return (
-    <header className="sticky top-0 z-40 flex h-20 items-center justify-between border-b border-white/5 bg-slate-950/40 px-8 backdrop-blur-xl">
+    <header
+      className="
+        sticky
+        top-0
+        z-40
 
-      {/* Left */}
-      <div>
+        flex
+        h-[76px]
+        items-center
+        justify-between
 
-        <h2 className="text-lg font-semibold text-white">
-          {greeting}
-        </h2>
+        overflow-visible
 
-        <p className="mt-1 flex items-center gap-2 text-sm text-gray-400">
-          <CalendarDays size={15} />
-          {today}
-        </p>
+        border-b
+        border-white/[0.07]
 
-      </div>
+        bg-[#0b1020]/55
+        backdrop-blur-2xl
+        backdrop-saturate-150
 
-      {/* Center Search */}
+        shadow-[0_8px_32px_rgba(0,0,0,0.18)]
+
+        px-4
+        sm:px-6
+        lg:px-8
+      "
+    >
+
+      {/* =====================================================
+          GLASS TOP EDGE
+      ===================================================== */}
+
+      <div
+        className="
+          pointer-events-none
+          absolute
+          inset-x-0
+          top-0
+          h-px
+          bg-gradient-to-r
+          from-transparent
+          via-violet-400/30
+          to-transparent
+        "
+      />
+
+      {/* =====================================================
+          SOFT GLASS AMBIENT LIGHT
+      ===================================================== */}
+
+      <div
+        className="
+          pointer-events-none
+          absolute
+          inset-0
+          bg-[radial-gradient(circle_at_70%_0%,rgba(139,92,246,0.07),transparent_35%)]
+        "
+      />
+
+      {/* =====================================================
+          LEFT — GREETING
+      ===================================================== */}
 
       <motion.div
-        whileFocus={{ scale: 1.02 }}
-        className="relative hidden w-[420px] lg:block"
+        initial={{
+          opacity: 0,
+          x: -10,
+        }}
+        animate={{
+          opacity: 1,
+          x: 0,
+        }}
+        transition={{
+          duration: 0.45,
+          ease: "easeOut",
+        }}
+        className="relative z-10 min-w-0"
       >
 
-        <Search
-          size={18}
-          className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500"
-        />
+        <div className="flex items-center gap-2">
 
-        <input
-          type="text"
-          placeholder="Search careers, skills, roadmap..."
-          className="w-full rounded-2xl border border-white/10 bg-white/5 py-3 pl-11 pr-5 text-white outline-none transition-all duration-300 placeholder:text-gray-500 focus:border-violet-500 focus:shadow-[0_0_25px_rgba(139,92,246,0.25)]"
-        />
+          <h2
+            className="
+              truncate
+              text-base
+              font-semibold
+              tracking-tight
+              text-white
+              sm:text-lg
+            "
+          >
+            {greeting},{" "}
+
+            <span className="text-violet-300">
+              {firstName}
+            </span>
+          </h2>
+
+          {/* Animated sparkle */}
+
+          <motion.span
+            animate={{
+              y: [0, -2, 0],
+              rotate: [0, 5, 0],
+            }}
+            transition={{
+              duration: 2.2,
+              repeat: Infinity,
+              ease: "easeInOut",
+            }}
+            className="hidden text-sm sm:inline"
+          >
+            ✨
+          </motion.span>
+
+        </div>
+
+        {/* DATE */}
+
+        <motion.div
+          initial={{
+            opacity: 0,
+          }}
+          animate={{
+            opacity: 1,
+          }}
+          transition={{
+            delay: 0.15,
+            duration: 0.4,
+          }}
+          className="
+            mt-1
+            flex
+            items-center
+            gap-1.5
+            text-[11px]
+            text-gray-500
+            sm:text-xs
+          "
+        >
+
+          <CalendarDays
+            size={13}
+            className="text-gray-600"
+          />
+
+          <span>{today}</span>
+
+        </motion.div>
 
       </motion.div>
 
-      {/* Right */}
+      {/* =====================================================
+          RIGHT SIDE
+      ===================================================== */}
 
-      <div className="flex items-center gap-5">
+      <div className="relative z-10 flex items-center gap-2 sm:gap-4">
 
-        {/* AI Status */}
+        {/* ===================================================
+            AI STATUS
+        =================================================== */}
 
         <motion.div
-          whileHover={{ scale: 1.03 }}
-          className="hidden items-center gap-2 rounded-full border border-violet-500/20 bg-violet-500/10 px-4 py-2 lg:flex"
+          initial={{
+            opacity: 0,
+            scale: 0.95,
+          }}
+          animate={{
+            opacity: 1,
+            scale: 1,
+          }}
+          transition={{
+            duration: 0.4,
+            delay: 0.1,
+          }}
+          whileHover={{
+            y: -1,
+          }}
+          className="
+            hidden
+            items-center
+            gap-2
+            rounded-full
+            border
+            border-violet-400/10
+            bg-violet-500/[0.06]
+            px-3
+            py-1.5
+            shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]
+            lg:flex
+          "
         >
+
+          {/* LIVE STATUS */}
+
+          <span className="relative flex h-2 w-2">
+
+            <motion.span
+              animate={{
+                opacity: [0.25, 0.8, 0.25],
+                scale: [1, 1.35, 1],
+              }}
+              transition={{
+                duration: 2,
+                repeat: Infinity,
+                ease: "easeInOut",
+              }}
+              className="
+                absolute
+                inset-0
+                rounded-full
+                bg-emerald-400
+              "
+            />
+
+            <span
+              className="
+                relative
+                h-2
+                w-2
+                rounded-full
+                bg-emerald-400
+              "
+            />
+
+          </span>
+
           <Sparkles
-            size={16}
+            size={13}
             className="text-violet-300"
           />
 
-          <span className="text-sm text-violet-200">
-            Gemini Ready
+          <span
+            className="
+              text-[11px]
+              font-medium
+              tracking-wide
+              text-violet-200
+            "
+          >
+            AI Career Coach
           </span>
 
         </motion.div>
 
-        {/* Notification */}
+        {/* ===================================================
+    PROFILE AREA
+=================================================== */}
 
-        <button className="relative rounded-2xl bg-white/5 p-3 transition hover:bg-white/10">
+<motion.button
+  type="button"
+  onClick={handleProfile}
+  whileHover={{
+    y: -2,
+    scale: 1.01,
+  }}
+  whileTap={{
+    scale: 0.97,
+  }}
+  className="
+    group
+    relative
+    flex
+    items-center
+    gap-2.5
 
-          <Bell
-            size={20}
-            className="text-gray-300"
-          />
+    rounded-2xl
+    border
+    border-white/[0.07]
 
-          <span className="absolute right-2 top-2 h-2.5 w-2.5 rounded-full bg-cyan-400" />
+    bg-white/[0.035]
 
-        </button>
+    px-2
+    py-1.5
 
-        {/* Profile */}
+    shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]
 
-        <button className="flex items-center gap-3 rounded-2xl bg-white/5 px-3 py-2 transition hover:bg-white/10">
+    transition-all
+    duration-300
 
-          <div className="flex h-11 w-11 items-center justify-center rounded-full bg-gradient-to-br from-violet-500 to-cyan-500 text-lg font-bold text-white shadow-lg">
+    hover:border-violet-400/20
+    hover:bg-white/[0.06]
+    hover:shadow-[0_8px_30px_rgba(139,92,246,0.10)]
 
-            {user?.name?.charAt(0).toUpperCase() || "U"}
+    sm:gap-3
+    sm:px-3
+  "
+>
+  {/* =================================================
+      SUBTLE HOVER GLOW
+  ================================================= */}
 
-          </div>
+  <motion.div
+    initial={{ opacity: 0 }}
+    whileHover={{ opacity: 1 }}
+    transition={{ duration: 0.25 }}
+    className="
+      pointer-events-none
+      absolute
+      inset-0
+      rounded-2xl
+      bg-[radial-gradient(circle_at_30%_50%,rgba(139,92,246,0.12),transparent_60%)]
+    "
+  />
 
-          <div className="hidden text-left lg:block">
+  {/* =================================================
+      AVATAR
+  ================================================= */}
 
-            <p className="font-medium text-white">
+  <div className="relative z-10">
 
-              {user?.name || "User"}
+    {profileImage ? (
+      <motion.img
+        src={profileImage}
+        alt={`${userName}'s profile`}
+        whileHover={{
+          scale: 1.06,
+          rotate: 1,
+        }}
+        transition={{
+          duration: 0.25,
+        }}
+        className="
+          relative
+          h-9
+          w-9
+          rounded-xl
 
-            </p>
+          border
+          border-white/10
 
-            <p className="text-xs text-gray-400">
+          object-cover
 
-              Career Explorer
+          shadow-[0_0_20px_rgba(139,92,246,0.12)]
 
-            </p>
+          sm:h-10
+          sm:w-10
+        "
+      />
+    ) : (
+      <motion.div
+        whileHover={{
+          scale: 1.06,
+          rotate: 1,
+        }}
+        transition={{
+          duration: 0.25,
+        }}
+        className="
+          flex
+          h-9
+          w-9
+          items-center
+          justify-center
 
-          </div>
+          rounded-xl
 
-          <ChevronDown
-            size={18}
-            className="hidden text-gray-400 lg:block"
-          />
+          border
+          border-violet-400/20
 
-        </button>
+          bg-gradient-to-br
+          from-violet-500/80
+          to-cyan-500/70
+
+          text-sm
+          font-bold
+          text-white
+
+          shadow-[0_0_20px_rgba(139,92,246,0.16)]
+
+          sm:h-10
+          sm:w-10
+        "
+      >
+        {initial}
+      </motion.div>
+    )}
+
+    {/* ONLINE DOT */}
+
+    <motion.span
+      animate={{
+        scale: [1, 1.15, 1],
+        opacity: [0.8, 1, 0.8],
+      }}
+      transition={{
+        duration: 2,
+        repeat: Infinity,
+        ease: "easeInOut",
+      }}
+      className="
+        absolute
+        -bottom-0.5
+        -right-0.5
+
+        h-2.5
+        w-2.5
+
+        rounded-full
+
+        border-2
+        border-[#0b1020]
+
+        bg-emerald-400
+      "
+    />
+  </div>
+
+  {/* =================================================
+      USER INFO
+  ================================================= */}
+
+  <div className="relative z-10 hidden text-left md:block">
+
+    <p
+      className="
+        max-w-[120px]
+        truncate
+
+        text-sm
+        font-semibold
+        text-white
+      "
+    >
+      {userName}
+    </p>
+
+    <div className="mt-0.5 flex items-center gap-1.5">
+
+      <span
+        className="
+          text-[10px]
+          font-medium
+          uppercase
+          tracking-[1.2px]
+          text-gray-600
+        "
+      >
+        Career Explorer
+      </span>
+
+      {/* Small navigation hint */}
+
+      <motion.span
+        initial={{ opacity: 0, x: -3 }}
+        whileHover={{ opacity: 1, x: 0 }}
+        className="
+          text-[9px]
+          text-violet-400/70
+        "
+      >
+        →
+      </motion.span>
+
+    </div>
+
+  </div>
+
+  {/* =================================================
+      PROFILE ARROW
+  ================================================= */}
+
+  <motion.div
+    animate={{
+      x: [0, 2, 0],
+    }}
+    transition={{
+      duration: 2,
+      repeat: Infinity,
+      ease: "easeInOut",
+    }}
+    className="
+      relative
+      z-10
+      hidden
+      md:block
+    "
+  >
+    <ChevronDown
+      size={15}
+      className="
+        -rotate-90
+        text-gray-600
+        transition-colors
+        duration-200
+        group-hover:text-violet-300
+      "
+    />
+  </motion.div>
+
+</motion.button>
 
       </div>
+
+      {/* =====================================================
+          CLICK OUTSIDE
+      ===================================================== */}
+
+      {menuOpen && (
+        <button
+          type="button"
+          aria-label="Close profile menu"
+          onClick={() => setMenuOpen(false)}
+          className="
+            fixed
+            inset-0
+            z-[-1]
+            cursor-default
+          "
+        />
+      )}
 
     </header>
   );

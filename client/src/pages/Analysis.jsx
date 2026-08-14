@@ -217,8 +217,10 @@ export default function Analysis() {
 
                     <ul className="space-y-2">
 
-                      {item.responsibilities.map(
-                        (responsibility, i) => (
+                      {(Array.isArray(item.responsibilities)
+                      ? item.responsibilities
+                      : [item.responsibilities]
+                    ).map((responsibility, i) => (
 
                           <li
                             key={i}
@@ -439,6 +441,175 @@ export default function Analysis() {
           </section>
 
         )}
+
+        {/* ==========================================
+    RESUME SCORE
+========================================== */}
+
+{analysis.resumeScore && (
+  <section className="mb-6 rounded-3xl border border-violet-500/20 bg-gradient-to-br from-violet-500/10 via-white/[0.03] to-cyan-500/5 p-7 backdrop-blur-xl">
+
+    <div className="mb-7 flex items-center gap-3">
+
+      <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-violet-500/10">
+        <Gauge
+          size={22}
+          className="text-violet-400"
+        />
+      </div>
+
+      <div>
+        <h2 className="text-xl font-semibold">
+          Resume Score
+        </h2>
+
+        <p className="text-sm text-gray-500">
+          Overall strength of your resume
+        </p>
+      </div>
+
+    </div>
+
+    <div className="grid gap-8 lg:grid-cols-[240px_1fr]">
+
+      {/* ==========================================
+          OVERALL SCORE
+      =========================================== */}
+
+      <div className="flex flex-col items-center justify-center">
+
+        <div
+          className="relative flex h-48 w-48 items-center justify-center rounded-full"
+          style={{
+            background: `conic-gradient(
+              rgb(139 92 246) ${analysis.resumeScore.overall * 3.6}deg,
+              rgba(255,255,255,0.06) 0deg
+            )`,
+          }}
+        >
+
+          <div className="flex h-40 w-40 flex-col items-center justify-center rounded-full bg-[#070712]">
+
+            <span className="text-5xl font-bold text-white">
+              {analysis.resumeScore.overall}
+            </span>
+
+            <span className="mt-1 text-sm text-gray-500">
+              / 100
+            </span>
+
+          </div>
+
+        </div>
+
+        <div className="mt-5 text-center">
+
+          <p className="font-semibold text-violet-300">
+            {analysis.resumeScore.overall >= 85
+              ? "Excellent Resume"
+              : analysis.resumeScore.overall >= 70
+              ? "Good Resume"
+              : analysis.resumeScore.overall >= 50
+              ? "Needs Improvement"
+              : "Needs Significant Improvement"}
+          </p>
+
+          {analysis.resumeScore.feedback && (
+            <p className="mt-2 max-w-xs text-sm leading-6 text-gray-400">
+              {analysis.resumeScore.feedback}
+            </p>
+          )}
+
+        </div>
+
+      </div>
+
+
+      {/* ==========================================
+          SCORE BREAKDOWN
+      =========================================== */}
+
+      <div>
+
+        <div className="mb-4 flex items-center gap-2">
+
+          <TrendingUp
+            size={18}
+            className="text-cyan-400"
+          />
+
+          <h3 className="font-semibold text-gray-200">
+            Score Breakdown
+          </h3>
+
+        </div>
+
+        <div className="grid gap-4 sm:grid-cols-2">
+
+          {[
+            {
+              label: "Content Quality",
+              value: analysis.resumeScore.contentQuality,
+            },
+            {
+              label: "Skills",
+              value: analysis.resumeScore.skills,
+            },
+            {
+              label: "Projects & Experience",
+              value: analysis.resumeScore.projectsExperience,
+            },
+            {
+              label: "Keywords",
+              value: analysis.resumeScore.keywords,
+            },
+            {
+              label: "Structure",
+              value: analysis.resumeScore.structure,
+            },
+          ].map((item) => (
+
+            <div
+              key={item.label}
+              className="rounded-2xl border border-white/10 bg-white/5 p-4"
+            >
+
+              <div className="mb-3 flex items-center justify-between">
+
+                <span className="text-sm text-gray-400">
+                  {item.label}
+                </span>
+
+                <span className="text-sm font-semibold text-white">
+                  {item.value}/100
+                </span>
+
+              </div>
+
+              <div className="h-2 overflow-hidden rounded-full bg-white/10">
+
+                <div
+                  className="h-full rounded-full bg-gradient-to-r from-violet-500 to-cyan-400 transition-all duration-700"
+                  style={{
+                    width: `${item.value}%`,
+                  }}
+                />
+
+              </div>
+
+            </div>
+
+          ))}
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </section>
+)}
+
 
         {/* ==========================================
             SKILLS

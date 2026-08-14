@@ -334,6 +334,9 @@ export const getDashboard = async (req, res) => {
               completedTasks,
               totalTasks,
               nextTask,
+              // Send actual roadmap structure
+              phases: roadmap.phases || [],
+
             }
           : null,
 

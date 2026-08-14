@@ -27,8 +27,45 @@ const resumeSchema = new mongoose.Schema(
       type: Date,
       default: Date.now,
     },
-
     analysis: {
+      
+  resumeScore: {
+    overall: {
+      type: Number,
+      default: 0,
+    },
+
+    contentQuality: {
+      type: Number,
+      default: 0,
+    },
+
+    skills: {
+      type: Number,
+      default: 0,
+    },
+
+    projectsExperience: {
+      type: Number,
+      default: 0,
+    },
+
+    keywords: {
+      type: Number,
+      default: 0,
+    },
+
+    structure: {
+      type: Number,
+      default: 0,
+    },
+
+    feedback: {
+      type: String,
+      default: "",
+    },
+  },
+
       summary: {
         type: String,
         default: "",

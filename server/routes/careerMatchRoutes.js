@@ -4,6 +4,7 @@ import {
   createCareerMatch,
   getCareerMatchHistory,
   getCareerMatchById,
+  deleteCareerMatch,
 } from "../controllers/careerMatchController.js";
 
 import { protect } from "../middleware/authMiddleware.js";
@@ -30,6 +31,14 @@ router.post("/", protect, createCareerMatch);
 // ==========================================
 
 router.get("/:id", protect, getCareerMatchById);
+
+// ==========================================
+// DELETE CAREER MATCH
+// ==========================================
+
+router.delete("/:id", protect, deleteCareerMatch);
+
+
 
 
 export default router;

@@ -69,4 +69,4 @@ export default function RecentActivity() {
       </div>
     </motion.div>
   );
-}
+} 

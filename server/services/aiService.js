@@ -1,5 +1,5 @@
 import { GoogleGenAI } from "@google/genai";
-const GEMINI_MODEL = "gemini-3.1-flash-lite";
+const GEMINI_MODEL = "gemini-3.6-flash";
 const getAI = () => {
   const apiKey = process.env.GEMINI_API_KEY;
 
@@ -42,6 +42,17 @@ Return ONLY valid JSON.
 Use exactly this structure:
 
 {
+  "resumeScore": {
+    "overall": 0,
+    "contentQuality": 0,
+    "skills": 0,
+    "projectsExperience": 0,
+    "keywords": 0,
+    "structure": 0,
+    "feedback": ""
+  },
+
+
   "summary": "",
 
   "technicalSkills": [],
@@ -56,17 +67,72 @@ Use exactly this structure:
 }
 
 
+RESUME SCORE:
+
+Calculate an overall Resume Score from 0 to 100.
+
+Evaluate the resume using these categories:
+
+- contentQuality: quality, clarity, and relevance of the written content.
+- skills: technical and soft skills demonstrated in the resume.
+- projectsExperience: quality and relevance of projects and work experience.
+- keywords: presence of relevant professional and technical keywords.
+- structure: organization, readability, and completeness of resume sections.
+
+Give each category a score from 0 to 100.
+
+The overall score should be a balanced evaluation of these categories.
+
+Do not give an inflated score.
+
+Do not assume skills or experience that are not present in the resume.
+
+feedback should be one short sentence explaining the overall quality of the resume.
+
+Example:
+
+"resumeScore": {
+  "overall": 78,
+  "contentQuality": 82,
+  "skills": 76,
+  "projectsExperience": 85,
+  "keywords": 70,
+  "structure": 79,
+  "feedback": "A strong resume with good projects, but keyword usage and content clarity can be improved."
+}
+  
 Rules:
 
 - technicalSkills: technical/programming/tools/framework skills.
 - softSkills: communication, leadership, teamwork, problem-solving, etc.
 - education: include degree, institution, field, and dates when available.
-- experience: include role, company, duration, and important responsibilities when available.
+- experience: return each experience as an object containing:
+  role,
+  company,
+  duration,
+  responsibilities.
+
+- responsibilities MUST always be an array of short strings.
+
+Example:
+{
+  "role": "Software Developer",
+  "company": "ABC",
+  "duration": "2025-2026",
+  "responsibilities": [
+    "Developed REST APIs",
+    "Built frontend features",
+    "Worked with MongoDB"
+  ]
+}
+
+If responsibilities are unavailable, return:
+"responsibilities": []
 - projects: include project name, technologies, and description when available.
 - strengths: identify strengths supported by the resume.
 - weaknesses: identify areas that appear weak or missing.
 - suggestedRoles: suggest realistic career roles based on the resume.
--missingSkills:
+- missingSkills:
 
 Return ONLY the names of skills that the candidate should learn or strengthen.
 
@@ -118,11 +184,13 @@ Bad:
 
 
 
+
 //career match analysis
 
 export const analyzeCareerMatch = async ({
   resumeText,
   targetRole,
+  targetCompany = "",
   jobDescription = "",
 }) => {
   const ai = getAI();
@@ -138,11 +206,24 @@ ${resumeText}
 TARGET ROLE:
 ${targetRole}
 
+TARGET COMPANY:
+${targetCompany || "Not specified"}
+
 JOB DESCRIPTION:
 ${
   jobDescription ||
   "No specific job description was provided. Evaluate against realistic expectations for this target role."
 }
+
+
+
+IMPORTANT:
+- The target company is contextual information only.
+- Do not increase or decrease the match score simply because of the company's reputation or name.
+- Evaluate the candidate based on their resume, target role, and job description when provided.
+- If a job description is provided, use it as the primary source for company-specific requirements.
+- If no job description is provided, do not invent company-specific requirements.
+
 
 Analyze:
 
@@ -243,7 +324,6 @@ Return only the genuine remaining skill gaps.
 
 If there are no genuine skill gaps, return [].
 
-
 Hidden gap:
 An important requirement that the candidate may not have considered.
 
@@ -272,7 +352,6 @@ Choose exactly one:
 - Apply after improving key gaps
 - Low fit
 
-
 RESUME IMPROVEMENTS:
 
 Suggest improvements only when supported by the candidate's actual experience.
@@ -286,29 +365,35 @@ Write a clear and easy-to-understand career insight for the candidate.
 The insight must explain all of the following:
 
 1. CURRENT POSITION
+
 - Explain where the candidate currently stands for the target role.
 - Say whether they are a strong match, partial match, or currently need improvement.
 - Mention the most important evidence from their resume.
 
 2. BIGGEST ADVANTAGE
+
 - Explain the candidate's strongest advantage for this role.
 - Mention the actual skills, projects, education, or experience that support this.
 
 3. BIGGEST WEAKNESS
+
 - Explain the most important weakness or gap.
 - Be specific and honest.
 - Do not criticize the candidate personally.
 
 4. WHAT IS MISSING
+
 - Explain the most important skills, experience, or evidence that is missing.
 - Distinguish between a skill the candidate may actually lack and a skill that may simply not be shown clearly on the resume.
 
 5. WHAT TO DO NEXT
+
 - Give practical advice on what the candidate should improve first.
 - Prioritize the most important improvements.
 - Explain why each improvement matters for the target role.
 
 6. OVERALL CAREER DIRECTION
+
 - Explain whether the candidate should apply now, improve first, or consider building more experience.
 - Give a realistic next step.
 
@@ -382,6 +467,285 @@ Do not use markdown or code fences.
 
   return JSON.parse(cleanedText);
 };
+
+// ==========================================
+// CREATE CAREER MATCH ANALYSIS
+// ==========================================
+
+export const createCareerMatch = async (req, res) => {
+  try {
+    // ==========================================
+    // CHECK AUTHENTICATION
+    // ==========================================
+
+    if (!req.user) {
+      return res.status(401).json({
+        success: false,
+        message: "Authentication required.",
+      });
+    }
+
+    const userId = req.user.id;
+
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        message: "User ID not found.",
+      });
+    }
+
+    // ==========================================
+    // GET INPUT
+    // ==========================================
+
+    const { resumeId, targetRole,targetCompany, jobDescription } = req.body;
+
+    if (!resumeId) {
+      return res.status(400).json({
+        success: false,
+        message: "Resume ID is required.",
+      });
+    }
+
+    if (!targetRole || !targetRole.trim()) {
+      return res.status(400).json({
+        success: false,
+        message: "Target career role is required.",
+      });
+    }
+
+    // ==========================================
+    // FIND USER'S RESUME
+    // ==========================================
+
+    const resume = await Resume.findOne({
+      _id: resumeId,
+      user: userId,
+    });
+
+    if (!resume) {
+      return res.status(404).json({
+        success: false,
+        message: "Resume not found.",
+      });
+    }
+
+    // ==========================================
+    // AI CAREER MATCH ANALYSIS
+    // ==========================================
+
+    console.log("🤖 Generating Career Match...");
+
+    const analysis = await analyzeCareerMatch({
+      resumeText: resume.resumeText,
+      targetRole: targetRole.trim(),
+      targetCompany: targetCompany?.trim() || "",
+      jobDescription: jobDescription?.trim() || "",
+    });
+
+    console.log("✅ Career Match generated");
+
+    // ==========================================
+    // SAVE CAREER MATCH
+    // ==========================================
+
+    const careerMatch = await CareerMatch.create({
+      user: userId,
+      resume: resume._id,
+
+      targetRole: targetRole.trim(),
+      targetCompany: targetCompany?.trim() || "",
+      jobDescription: jobDescription?.trim() || "",
+
+      ...analysis,
+    });
+
+    // ==========================================
+    // SUCCESS RESPONSE
+    // ==========================================
+
+    res.status(201).json({
+      success: true,
+      message: "Career Match analysis generated successfully.",
+      careerMatch,
+    });
+  } catch (error) {
+    console.error("CAREER MATCH ERROR:", error);
+
+    res.status(500).json({
+      success: false,
+      message: "Failed to generate Career Match analysis.",
+      error: error.message,
+    });
+  }
+};
+
+
+// ==========================================
+// GET CAREER MATCH HISTORY
+// ==========================================
+
+export const getCareerMatchHistory = async (req, res) => {
+  try {
+    // ==========================================
+    // CHECK AUTHENTICATION
+    // ==========================================
+
+    if (!req.user) {
+      return res.status(401).json({
+        success: false,
+        message: "Authentication required.",
+      });
+    }
+
+    const userId = req.user.id;
+
+    // ==========================================
+    // GET USER'S CAREER MATCHES
+    // ==========================================
+
+    const careerMatches = await CareerMatch.find({
+      user: userId,
+    })
+      .select(
+        "_id resume targetRole matchScore applyRecommendation createdAt updatedAt"
+      )
+      .sort({
+        createdAt: -1,
+      });
+
+    // ==========================================
+    // RESPONSE
+    // ==========================================
+
+    res.status(200).json({
+      success: true,
+      careerMatches,
+    });
+  } catch (error) {
+    console.error("CAREER MATCH HISTORY ERROR:", error);
+
+    res.status(500).json({
+      success: false,
+      message: "Failed to fetch Career Match history.",
+      error: error.message,
+    });
+  }
+};
+
+
+// ==========================================
+// GET SINGLE CAREER MATCH
+// ==========================================
+
+export const getCareerMatchById = async (req, res) => {
+  try {
+    // ==========================================
+    // CHECK AUTHENTICATION
+    // ==========================================
+
+    if (!req.user) {
+      return res.status(401).json({
+        success: false,
+        message: "Authentication required.",
+      });
+    }
+
+    const userId = req.user.id;
+
+    // ==========================================
+    // FIND CAREER MATCH
+    // ==========================================
+
+    const careerMatch = await CareerMatch.findOne({
+      _id: req.params.id,
+      user: userId,
+    }).populate("resume", "fileName uploadedAt");
+
+    // ==========================================
+    // CHECK RESULT
+    // ==========================================
+
+    if (!careerMatch) {
+      return res.status(404).json({
+        success: false,
+        message: "Career Match analysis not found.",
+      });
+    }
+
+    // ==========================================
+    // RESPONSE
+    // ==========================================
+
+    res.status(200).json({
+      success: true,
+      careerMatch,
+    });
+  } catch (error) {
+    console.error("GET CAREER MATCH ERROR:", error);
+
+    res.status(500).json({
+      success: false,
+      message: "Failed to fetch Career Match analysis.",
+      error: error.message,
+    });
+  }
+};
+
+// ==========================================
+// DELETE CAREER MATCH
+// ==========================================
+
+export const deleteCareerMatch = async (req, res) => {
+  try {
+    // ==========================================
+    // CHECK AUTHENTICATION
+    // ==========================================
+
+    if (!req.user) {
+      return res.status(401).json({
+        success: false,
+        message: "Authentication required.",
+      });
+    }
+
+    const userId = req.user.id;
+
+    // ==========================================
+    // DELETE ONLY USER'S OWN CAREER MATCH
+    // ==========================================
+
+    const careerMatch = await CareerMatch.findOneAndDelete({
+      _id: req.params.id,
+      user: userId,
+    });
+
+    if (!careerMatch) {
+      return res.status(404).json({
+        success: false,
+        message: "Career Match analysis not found.",
+      });
+    }
+
+    // ==========================================
+    // SUCCESS
+    // ==========================================
+
+    res.status(200).json({
+      success: true,
+      message: "Career Match deleted successfully.",
+    });
+  } catch (error) {
+    console.error("DELETE CAREER MATCH ERROR:", error);
+
+    res.status(500).json({
+      success: false,
+      message: "Failed to delete Career Match.",
+      error: error.message,
+    });
+  }
+};
+
 
 
 // ==========================================================
@@ -1400,6 +1764,8 @@ ${company}
 
 Job Description:
 ${jobDescription || "Not provided"}
+
+
 
 ==========================================
 ANALYSIS

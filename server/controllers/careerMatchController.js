@@ -32,7 +32,7 @@ export const createCareerMatch = async (req, res) => {
     // GET INPUT
     // ==========================================
 
-    const { resumeId, targetRole, jobDescription } = req.body;
+    const { resumeId, targetRole,targetCompany, jobDescription } = req.body;
 
     if (!resumeId) {
       return res.status(400).json({
@@ -73,6 +73,7 @@ export const createCareerMatch = async (req, res) => {
     const analysis = await analyzeCareerMatch({
       resumeText: resume.resumeText,
       targetRole: targetRole.trim(),
+      targetCompany: targetCompany?.trim() || "",
       jobDescription: jobDescription?.trim() || "",
     });
 
@@ -87,6 +88,7 @@ export const createCareerMatch = async (req, res) => {
       resume: resume._id,
 
       targetRole: targetRole.trim(),
+      targetCompany: targetCompany?.trim() || "",
       jobDescription: jobDescription?.trim() || "",
 
       ...analysis,
@@ -119,10 +121,6 @@ export const createCareerMatch = async (req, res) => {
 
 export const getCareerMatchHistory = async (req, res) => {
   try {
-    // ==========================================
-    // CHECK AUTHENTICATION
-    // ==========================================
-
     if (!req.user) {
       return res.status(401).json({
         success: false,
@@ -132,23 +130,36 @@ export const getCareerMatchHistory = async (req, res) => {
 
     const userId = req.user.id;
 
-    // ==========================================
-    // GET USER'S CAREER MATCHES
-    // ==========================================
-
     const careerMatches = await CareerMatch.find({
       user: userId,
     })
-      .select(
-        "_id resume targetRole matchScore applyRecommendation createdAt updatedAt"
-      )
+      .select(`
+        _id
+        resume
+        targetRole
+        targetCompany
+        jobDescription
+        matchScore
+        skillMatch
+        experienceMatch
+        projectMatch
+        strongMatches
+        partialMatches
+        criticalGaps
+        skillsToDevelop
+        hiddenGaps
+        evidenceGaps
+        experienceGaps
+        skillPriorities
+        applyRecommendation
+        resumeSuggestions
+        careerInsight
+        createdAt
+        updatedAt
+      `)
       .sort({
         createdAt: -1,
       });
-
-    // ==========================================
-    // RESPONSE
-    // ==========================================
 
     res.status(200).json({
       success: true,
@@ -219,6 +230,60 @@ export const getCareerMatchById = async (req, res) => {
     res.status(500).json({
       success: false,
       message: "Failed to fetch Career Match analysis.",
+      error: error.message,
+    });
+  }
+};
+
+// ==========================================
+// DELETE CAREER MATCH
+// ==========================================
+
+export const deleteCareerMatch = async (req, res) => {
+  try {
+    // ==========================================
+    // CHECK AUTHENTICATION
+    // ==========================================
+
+    if (!req.user) {
+      return res.status(401).json({
+        success: false,
+        message: "Authentication required.",
+      });
+    }
+
+    const userId = req.user.id;
+
+    // ==========================================
+    // DELETE ONLY USER'S OWN CAREER MATCH
+    // ==========================================
+
+    const careerMatch = await CareerMatch.findOneAndDelete({
+      _id: req.params.id,
+      user: userId,
+    });
+
+    if (!careerMatch) {
+      return res.status(404).json({
+        success: false,
+        message: "Career Match analysis not found.",
+      });
+    }
+
+    // ==========================================
+    // SUCCESS
+    // ==========================================
+
+    res.status(200).json({
+      success: true,
+      message: "Career Match deleted successfully.",
+    });
+  } catch (error) {
+    console.error("DELETE CAREER MATCH ERROR:", error);
+
+    res.status(500).json({
+      success: false,
+      message: "Failed to delete Career Match.",
       error: error.message,
     });
   }

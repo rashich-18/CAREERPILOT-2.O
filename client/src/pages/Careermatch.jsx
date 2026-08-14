@@ -11,7 +11,9 @@ import {
   CheckCircle2,
   Loader2,
   Upload,
-
+  Building,
+  Trash2,
+  Check,
 } from "lucide-react";
 
 import toast from "react-hot-toast";
@@ -23,6 +25,8 @@ import {
 
 import {
   createCareerMatch,
+  getCareerMatchHistory,
+  deleteCareerMatch,
 } from "../api/careerMatchApi";
 
 export default function CareerMatch() {
@@ -38,10 +42,21 @@ export default function CareerMatch() {
   const [uploadingResume, setUploadingResume] = useState(false);
 
   const [targetRole, setTargetRole] = useState("");
+  const [targetCompany, setTargetCompany] = useState("");
   const [jobDescription, setJobDescription] = useState("");
 
   const [loadingResumes, setLoadingResumes] = useState(true);
   const [analyzing, setAnalyzing] = useState(false);
+
+  // Career Match History
+  const [careerMatchHistory, setCareerMatchHistory] = useState([]);
+  const [loadingHistory, setLoadingHistory] = useState(true);
+
+  // Multiple selection
+  const [selectedMatches, setSelectedMatches] = useState([]);
+
+  // Bulk delete
+  const [deletingSelected, setDeletingSelected] = useState(false);
 
   // ==========================================
   // LOAD SAVED RESUMES
@@ -81,6 +96,40 @@ export default function CareerMatch() {
     };
 
     loadResumes();
+  }, []);
+
+  // ==========================================
+  // LOAD CAREER MATCH HISTORY
+  // ==========================================
+
+  useEffect(() => {
+    const loadCareerMatchHistory = async () => {
+      try {
+        setLoadingHistory(true);
+
+        const response = await getCareerMatchHistory();
+
+        if (response?.success) {
+          setCareerMatchHistory(
+            response.careerMatches || []
+          );
+        }
+      } catch (error) {
+        console.error(
+          "CAREER MATCH HISTORY ERROR:",
+          error
+        );
+
+        toast.error(
+          error?.response?.data?.message ||
+            "Failed to load Career Match history."
+        );
+      } finally {
+        setLoadingHistory(false);
+      }
+    };
+
+    loadCareerMatchHistory();
   }, []);
 
   // ==========================================
@@ -156,6 +205,95 @@ export default function CareerMatch() {
   };
 
   // ==========================================
+  // TOGGLE SINGLE MATCH SELECTION
+  // ==========================================
+
+  const toggleMatchSelection = (id) => {
+    setSelectedMatches((prev) =>
+      prev.includes(id)
+        ? prev.filter((matchId) => matchId !== id)
+        : [...prev, id]
+    );
+  };
+
+  // ==========================================
+  // SELECT / DESELECT ALL
+  // ==========================================
+
+  const handleSelectAll = () => {
+    if (
+      selectedMatches.length ===
+      careerMatchHistory.length
+    ) {
+      setSelectedMatches([]);
+    } else {
+      setSelectedMatches(
+        careerMatchHistory.map(
+          (match) => match._id
+        )
+      );
+    }
+  };
+
+  // ==========================================
+  // DELETE SELECTED MATCHES
+  // ==========================================
+
+  const handleDeleteSelected = async () => {
+    if (selectedMatches.length === 0) return;
+
+    const confirmed = window.confirm(
+      `Are you sure you want to delete ${
+        selectedMatches.length
+      } Career Match ${
+        selectedMatches.length === 1
+          ? "analysis"
+          : "analyses"
+      }?`
+    );
+
+    if (!confirmed) return;
+
+    try {
+      setDeletingSelected(true);
+
+      // Delete all selected analyses
+      await Promise.all(
+        selectedMatches.map((id) =>
+          deleteCareerMatch(id)
+        )
+      );
+
+      // Remove deleted items from UI
+      setCareerMatchHistory((prev) =>
+        prev.filter(
+          (match) =>
+            !selectedMatches.includes(match._id)
+        )
+      );
+
+      // Clear selection
+      setSelectedMatches([]);
+
+      toast.success(
+        "Selected Career Match history deleted successfully."
+      );
+    } catch (error) {
+      console.error(
+        "DELETE SELECTED CAREER MATCH ERROR:",
+        error
+      );
+
+      toast.error(
+        error?.response?.data?.message ||
+          "Failed to delete selected Career Match history."
+      );
+    } finally {
+      setDeletingSelected(false);
+    }
+  };
+
+  // ==========================================
   // ANALYZE CAREER FIT
   // ==========================================
 
@@ -164,24 +302,33 @@ export default function CareerMatch() {
 
     // Check resume
     if (!selectedResume) {
-      toast.error("Please select or upload a resume.");
+      toast.error(
+        "Please select or upload a resume."
+      );
+
       return;
     }
 
     // Check target role
     if (!targetRole.trim()) {
-      toast.error("Please enter your target role.");
+      toast.error(
+        "Please enter your target role."
+      );
+
       return;
     }
 
     try {
       setAnalyzing(true);
 
-      console.log("🤖 Generating Career Match...");
+      console.log(
+        "🤖 Generating Career Match..."
+      );
 
       const response = await createCareerMatch({
         resumeId: selectedResume,
         targetRole: targetRole.trim(),
+        targetCompany: targetCompany.trim(),
         jobDescription: jobDescription.trim(),
       });
 
@@ -222,7 +369,9 @@ export default function CareerMatch() {
       if (
         errorDetails.includes("429") ||
         errorDetails.includes("quota") ||
-        errorDetails.includes("RESOURCE_EXHAUSTED")
+        errorDetails.includes(
+          "RESOURCE_EXHAUSTED"
+        )
       ) {
         toast.error(
           "AI quota is currently exhausted. Please try again after the Gemini quota resets."
@@ -241,16 +390,22 @@ export default function CareerMatch() {
 
   return (
     <div className="min-h-screen bg-[#050510] px-6 py-12 text-white">
+      <div className="mx-auto max-w-5xl">
 
-  <div className="mx-auto max-w-5xl">
+        {/* ==========================================
+            BACK BUTTON
+        ========================================== */}
 
-    <button
-      onClick={() => navigate("/dashboard")}
-      className="mb-8 inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 text-sm font-medium text-gray-300 transition hover:border-violet-500/30 hover:bg-white/10 hover:text-white"
-    >
-      <ArrowLeft size={17} />
-      Back to Dashboard
-    </button>
+        <button
+          onClick={() =>
+            navigate("/dashboard")
+          }
+          className="mb-8 inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 text-sm font-medium text-gray-300 transition hover:border-violet-500/30 hover:bg-white/10 hover:text-white"
+        >
+          <ArrowLeft size={17} />
+          Back to Dashboard
+        </button>
+
         {/* ==========================================
             HEADER
         ========================================== */}
@@ -269,10 +424,11 @@ export default function CareerMatch() {
           </h1>
 
           <p className="mx-auto mt-4 max-w-2xl text-gray-400">
-            Tell CareerPilot where you want to go. We'll compare
-            your actual resume against your target career and
-            identify what is helping, what's missing, and what
-            you should focus on next.
+            Tell CareerPilot where you want to go.
+            We'll compare your actual resume against
+            your target career and identify what is
+            helping, what's missing, and what you should
+            focus on next.
           </p>
 
         </div>
@@ -293,12 +449,14 @@ export default function CareerMatch() {
           <div className="mb-8">
 
             <label className="mb-3 flex items-center gap-2 text-sm font-semibold text-gray-200">
+
               <FileText
                 size={18}
                 className="text-cyan-400"
               />
 
               Select Resume
+
             </label>
 
             {loadingResumes ? (
@@ -318,9 +476,7 @@ export default function CareerMatch() {
 
               <>
 
-                {/* ==========================================
-                    SAVED RESUMES
-                ========================================== */}
+                {/* SAVED RESUMES */}
 
                 {resumes.length > 0 && (
 
@@ -356,9 +512,7 @@ export default function CareerMatch() {
 
                 )}
 
-                {/* ==========================================
-                    OR
-                ========================================== */}
+                {/* OR */}
 
                 <div className="my-5 flex items-center gap-3">
 
@@ -372,9 +526,7 @@ export default function CareerMatch() {
 
                 </div>
 
-                {/* ==========================================
-                    UPLOAD NEW RESUME
-                ========================================== */}
+                {/* UPLOAD NEW RESUME */}
 
                 <label
                   htmlFor="career-match-resume-upload"
@@ -406,7 +558,6 @@ export default function CareerMatch() {
                   ) : (
 
                     <>
-
                       <Upload
                         size={30}
                         className="mb-3 text-violet-400"
@@ -420,7 +571,6 @@ export default function CareerMatch() {
                         PDF only • Your resume will be
                         analyzed automatically
                       </p>
-
                     </>
 
                   )}
@@ -436,9 +586,7 @@ export default function CareerMatch() {
 
                 </label>
 
-                {/* ==========================================
-                    SELECTED RESUME
-                ========================================== */}
+                {/* SELECTED RESUME */}
 
                 {selectedResume && (
 
@@ -489,6 +637,43 @@ export default function CareerMatch() {
 
             <p className="mt-2 text-xs text-gray-500">
               Enter the job you actually want to pursue.
+            </p>
+
+          </div>
+
+          {/* ==========================================
+              TARGET COMPANY
+          ========================================== */}
+
+          <div className="mb-8">
+
+            <label className="mb-3 flex items-center gap-2 text-sm font-semibold text-gray-200">
+
+              <Building
+                size={18}
+                className="text-blue-400"
+              />
+
+              Target Company
+
+              <span className="font-normal text-gray-500">
+                (Optional)
+              </span>
+
+            </label>
+
+            <input
+              type="text"
+              value={targetCompany}
+              onChange={(e) =>
+                setTargetCompany(e.target.value)
+              }
+              placeholder="e.g. Google, Microsoft"
+              className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-4 text-white outline-none placeholder:text-gray-500 transition focus:border-blue-500 focus:bg-white/[0.07]"
+            />
+
+            <p className="mt-2 text-xs text-gray-500">
+              Enter a specific company if you're targeting one.
             </p>
 
           </div>
@@ -590,7 +775,7 @@ For example:
           </div>
 
           {/* ==========================================
-              BUTTON
+              ANALYZE BUTTON
           ========================================== */}
 
           <button
@@ -636,8 +821,320 @@ For example:
 
         </form>
 
-      </div>
+        {/* ==========================================
+            CAREER MATCH HISTORY
+        ========================================== */}
 
+        <section className="mt-12 pb-10">
+
+          {/* ==========================================
+              HISTORY HEADER
+          ========================================== */}
+
+          <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+
+            <div>
+
+              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">
+                History
+              </p>
+
+              <h2 className="mt-2 text-2xl font-bold text-white">
+                Your Career Match History
+              </h2>
+
+              <p className="mt-2 text-sm text-gray-500">
+                Revisit your previous career assessments anytime.
+              </p>
+
+            </div>
+
+            {/* ==========================================
+                SELECTION CONTROLS
+            ========================================== */}
+
+            {careerMatchHistory.length > 0 && (
+
+              <div className="flex flex-wrap items-center gap-2">
+
+                {/* SELECT ALL */}
+
+                <button
+                  type="button"
+                  onClick={handleSelectAll}
+                  disabled={deletingSelected}
+                  className="inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 text-sm font-medium text-gray-300 transition hover:border-violet-500/30 hover:bg-white/10 hover:text-white disabled:cursor-not-allowed disabled:opacity-50"
+                >
+
+                  <div
+                    className={`flex h-4 w-4 items-center justify-center rounded border ${
+                      selectedMatches.length ===
+                      careerMatchHistory.length
+                        ? "border-violet-400 bg-violet-500"
+                        : "border-white/20 bg-white/5"
+                    }`}
+                  >
+
+                    {selectedMatches.length ===
+                      careerMatchHistory.length && (
+                      <Check
+                        size={12}
+                        className="text-white"
+                      />
+                    )}
+
+                  </div>
+
+                  {selectedMatches.length ===
+                  careerMatchHistory.length
+                    ? "Deselect All"
+                    : "Select All"}
+
+                </button>
+
+                {/* DELETE SELECTED */}
+
+                {selectedMatches.length > 0 && (
+
+                  <button
+                    type="button"
+                    onClick={handleDeleteSelected}
+                    disabled={deletingSelected}
+                    className="inline-flex items-center gap-2 rounded-xl border border-rose-400/20 bg-rose-400/10 px-4 py-2.5 text-sm font-medium text-rose-300 transition hover:border-rose-400/40 hover:bg-rose-400/20 disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+
+                    {deletingSelected ? (
+
+                      <Loader2
+                        size={16}
+                        className="animate-spin"
+                      />
+
+                    ) : (
+
+                      <Trash2 size={16} />
+
+                    )}
+
+                    {deletingSelected
+                      ? "Deleting..."
+                      : `Delete Selected (${selectedMatches.length})`}
+
+                  </button>
+
+                )}
+
+              </div>
+
+            )}
+
+          </div>
+
+          {/* ==========================================
+              LOADING STATE
+          ========================================== */}
+
+          {loadingHistory ? (
+
+            <div className="flex items-center justify-center rounded-3xl border border-white/10 bg-white/[0.03] p-10">
+
+              <Loader2
+                className="mr-3 animate-spin text-violet-400"
+                size={22}
+              />
+
+              <span className="text-sm text-gray-500">
+                Loading your history...
+              </span>
+
+            </div>
+
+          ) : careerMatchHistory.length === 0 ? (
+
+            /* ==========================================
+                EMPTY STATE
+            ========================================== */
+
+            <div className="rounded-3xl border border-white/10 bg-white/[0.03] p-10 text-center">
+
+              <Target
+                size={38}
+                className="mx-auto text-gray-600"
+              />
+
+              <h3 className="mt-4 font-semibold text-white">
+                No Career Match history yet
+              </h3>
+
+              <p className="mt-2 text-sm text-gray-500">
+                Your previous career assessments will appear here.
+              </p>
+
+            </div>
+
+          ) : (
+
+            /* ==========================================
+                HISTORY LIST
+            ========================================== */
+
+            <div className="space-y-3">
+
+              {careerMatchHistory.map((match) => {
+
+                const isSelected =
+                  selectedMatches.includes(
+                    match._id
+                  );
+
+                return (
+
+                  <div
+                    key={match._id}
+                    className={`group flex flex-col gap-4 rounded-2xl border p-5 transition sm:flex-row sm:items-center sm:justify-between ${
+                      isSelected
+                        ? "border-violet-500/40 bg-violet-500/[0.08]"
+                        : "border-white/10 bg-white/[0.03] hover:border-violet-500/20 hover:bg-white/[0.05]"
+                    }`}
+                  >
+
+                    {/* ==================================
+                        LEFT SIDE
+                    ================================== */}
+
+                    <div className="flex min-w-0 flex-1 items-center gap-4">
+
+                      {/* CHECKBOX */}
+
+                      <button
+                        type="button"
+                        onClick={() =>
+                          toggleMatchSelection(
+                            match._id
+                          )
+                        }
+                        disabled={deletingSelected}
+                        aria-label={`Select ${match.targetRole}`}
+                        className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-md border transition ${
+                          isSelected
+                            ? "border-violet-400 bg-violet-500"
+                            : "border-white/20 bg-white/5 hover:border-violet-400/50"
+                        }`}
+                      >
+
+                        {isSelected && (
+                          <Check
+                            size={13}
+                            className="text-white"
+                          />
+                        )}
+
+                      </button>
+
+                      {/* MATCH INFORMATION */}
+
+                      <button
+                        type="button"
+                        onClick={() =>
+                          navigate(
+                            `/career-match/${match._id}`
+                          )
+                        }
+                        className="flex min-w-0 flex-1 items-center gap-4 text-left"
+                      >
+
+                        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-violet-500/10">
+
+                          <Target
+                            size={20}
+                            className="text-violet-300"
+                          />
+
+                        </div>
+
+                        <div className="min-w-0">
+
+                          <h3 className="truncate font-semibold text-white">
+                            {match.targetRole}
+                          </h3>
+
+                          <p className="mt-1 text-xs text-gray-500">
+
+                            {match.createdAt
+                              ? new Date(
+                                  match.createdAt
+                                ).toLocaleDateString(
+                                  undefined,
+                                  {
+                                    day: "numeric",
+                                    month: "short",
+                                    year: "numeric",
+                                  }
+                                )
+                              : "Date unavailable"}
+
+                          </p>
+
+                        </div>
+
+                      </button>
+
+                    </div>
+
+                    {/* ==================================
+                        RIGHT SIDE
+                    ================================== */}
+
+                    <div className="flex items-center justify-between gap-4 sm:justify-end">
+
+                      {/* SCORE */}
+
+                      <div className="text-right">
+
+                        <p className="text-xl font-bold text-white">
+
+                          {Math.round(
+                            Number(
+                              match.matchScore
+                            ) || 0
+                          )}
+
+                          %
+
+                        </p>
+
+                        <p className="text-[11px] text-gray-500">
+                          match
+                        </p>
+
+                      </div>
+
+                      {/* RECOMMENDATION */}
+
+                      {match.applyRecommendation && (
+
+                        <span className="hidden rounded-full border border-emerald-400/20 bg-emerald-400/10 px-3 py-1.5 text-xs text-emerald-300 md:block">
+
+                          {match.applyRecommendation}
+
+                        </span>
+
+                      )}
+
+                    </div>
+
+                  </div>
+
+                );
+              })}
+
+            </div>
+
+          )}
+
+        </section>
+
+      </div>
     </div>
   );
 }

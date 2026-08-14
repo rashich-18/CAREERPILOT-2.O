@@ -1,31 +1,34 @@
+import { useState } from "react";
 import Sidebar from "./Sidebar";
 import TopNavbar from "./TopNavbar";
 
 export default function DashboardLayout({ children }) {
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+
   return (
-    <div className="min-h-screen bg-[#09090B] text-white">
+    <div className="min-h-screen bg-[#070914]">
 
-      {/* Background Glow */}
+      {/* SIDEBAR */}
+      <Sidebar
+        open={sidebarOpen}
+        setOpen={setSidebarOpen}
+      />
 
-      <div className="fixed inset-0 -z-10 overflow-hidden">
+      {/* MAIN AREA */}
+      <div
+        className={`
+          min-h-screen
+          transition-all
+          duration-300
+          ease-out
 
-        <div className="absolute left-0 top-0 h-[500px] w-[500px] rounded-full bg-violet-600/15 blur-[140px]" />
-
-        <div className="absolute bottom-0 right-0 h-[450px] w-[450px] rounded-full bg-cyan-500/15 blur-[140px]" />
-
-      </div>
-
-      {/* Sidebar */}
-
-      <Sidebar />
-
-      {/* Main Content */}
-
-      <div className="ml-72">
+          ${sidebarOpen ? "ml-72" : "ml-[88px]"}
+        `}
+      >
 
         <TopNavbar />
 
-        <main className="p-8">
+        <main className="px-6 py-6 lg:px-8">
           {children}
         </main>
 

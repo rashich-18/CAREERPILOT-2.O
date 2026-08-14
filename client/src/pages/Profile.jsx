@@ -60,10 +60,20 @@ const [uploadingPicture, setUploadingPicture] =
 
       if (response.data.success) {
         const user = response.data.user;
+
+        localStorage.setItem(
+  "user",
+  JSON.stringify(user)
+);
+
+window.dispatchEvent(
+  new Event("userUpdated")
+);
+
         console.log("USER FROM BACKEND:", user);
 console.log(
   "PROFILE PICTURE FROM BACKEND:",
-  user.education?.profilePicture
+  user.profilePicture
 );
 
         setProfile({
@@ -138,7 +148,7 @@ const handleChange = (e) => {
 // ==========================================
 // HANDLE PROFILE PICTURE
 // ==========================================
-
+                                  
 const handleProfilePictureChange = async (e) => {
   const file = e.target.files?.[0];
 

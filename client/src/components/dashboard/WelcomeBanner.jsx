@@ -1,7 +1,11 @@
-import { ArrowRight, Sparkles } from "lucide-react";
+import { Sparkles, TrendingUp } from "lucide-react";
 import { motion } from "framer-motion";
 
 export default function WelcomeBanner({ data, loading }) {
+  // ==========================================
+  // USER
+  // ==========================================
+
   const user = JSON.parse(
     localStorage.getItem("user") || "{}"
   );
@@ -17,9 +21,17 @@ export default function WelcomeBanner({ data, loading }) {
 
   const name = user?.name || "there";
 
+  // ==========================================
+  // DATA
+  // ==========================================
+
   const resume = data?.resumes?.[0];
   const match = data?.careerMatches?.[0];
   const roadmap = data?.roadmaps?.[0];
+
+  // ==========================================
+  // RESUME SCORE
+  // ==========================================
 
   const resumeScore =
     resume?.score ??
@@ -27,11 +39,19 @@ export default function WelcomeBanner({ data, loading }) {
     resume?.overallScore ??
     0;
 
+  // ==========================================
+  // CAREER MATCH SCORE
+  // ==========================================
+
   const matchScore =
     match?.matchPercentage ??
     match?.matchScore ??
     match?.score ??
     0;
+
+  // ==========================================
+  // ROADMAP PROGRESS
+  // ==========================================
 
   const completed =
     roadmap?.completedMilestones ??
@@ -49,6 +69,10 @@ export default function WelcomeBanner({ data, loading }) {
       ? Math.round((completed / total) * 100)
       : roadmap?.progress ?? 0;
 
+  // ==========================================
+  // CAREER READINESS
+  // ==========================================
+
   const readinessValues = [
     resumeScore,
     matchScore,
@@ -65,52 +89,161 @@ export default function WelcomeBanner({ data, loading }) {
         )
       : 0;
 
+  // ==========================================
+  // READINESS MESSAGE
+  // ==========================================
+
+  const readinessMessage =
+    readiness >= 80
+      ? "You're highly prepared for your target role."
+      : readiness >= 60
+      ? "You're making strong progress toward your target role."
+      : readiness > 0
+      ? "You're making steady progress toward your target role."
+      : "Complete your career profile to get started.";
+
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
+    <motion.section
+      initial={{ opacity: 0, y: 14 }}
       animate={{ opacity: 1, y: 0 }}
-      className="relative overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-r from-[#141827] via-[#171b2d] to-[#24163f] p-8"
+      transition={{
+        duration: 0.5,
+        ease: "easeOut",
+      }}
+      className="
+        relative
+        overflow-hidden
+        rounded-3xl
+        border border-white/10
+        bg-[#121628]
+        shadow-2xl
+        shadow-violet-950/20
+      "
     >
+      {/* =====================================================
+          UNIFIED BACKGROUND
+          IMPORTANT:
+          There is intentionally NO separate background
+          behind the illustration.
+      ===================================================== */}
 
-      <div className="absolute -right-24 -top-24 h-72 w-72 rounded-full bg-violet-500/15 blur-3xl" />
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_78%_50%,rgba(99,70,180,0.18),transparent_34%)]" />
 
-      <div className="absolute -bottom-24 right-32 h-60 w-60 rounded-full bg-cyan-500/10 blur-3xl" />
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_45%_100%,rgba(34,211,238,0.06),transparent_35%)]" />
 
-      <div className="relative z-10">
+      {/* =====================================================
+          MAIN CONTENT
+      ===================================================== */}
 
-        <div className="flex flex-col gap-8 lg:flex-row lg:items-center lg:justify-between">
+      <div className="relative z-10 flex min-h-[230px] flex-col lg:min-h-[250px] lg:flex-row">
 
-          <div className="max-w-2xl">
+        {/* ==================================================
+            LEFT CONTENT
+        ================================================== */}
 
-            <div className="mb-4 flex items-center gap-2">
+        <div className="relative z-20 flex w-full items-center px-6 py-7 sm:px-8 sm:py-8 lg:w-[56%] lg:px-9 lg:py-8">
+          <div className="w-full max-w-2xl">
 
-              <Sparkles
-                size={19}
-                className="text-violet-400"
-              />
+            {/* ==========================================
+                BRAND LABEL
+            ========================================== */}
 
-              <span className="text-sm uppercase tracking-[3px] text-violet-300">
+            <div className="mb-3 flex items-center gap-2">
+
+              <div className="flex h-7 w-7 items-center justify-center rounded-lg border border-violet-400/10 bg-violet-500/10">
+                <Sparkles
+                  size={14}
+                  className="text-violet-400"
+                />
+              </div>
+
+              <span className="text-[10px] font-semibold uppercase tracking-[2.5px] text-violet-300 sm:text-[11px]">
                 CareerPilot AI
               </span>
 
             </div>
 
-            <h1 className="text-4xl font-bold text-white sm:text-5xl">
-              {greeting},{" "}
-              <span className="bg-gradient-to-r from-violet-400 to-cyan-400 bg-clip-text text-transparent">
-                {name} 👋
-              </span>
-            </h1>
+           {/* ==========================================
+    GREETING
+========================================== */}
 
-            <p className="mt-4 text-lg text-gray-400">
-              Here's your career progress at a glance.
-            </p>
+<motion.h1
+  initial={{ opacity: 0, y: 12 }}
+  animate={{ opacity: 1, y: 0 }}
+  transition={{
+    duration: 0.6,
+    delay: 0.1,
+    ease: "easeOut",
+  }}
+  className="
+    text-2xl
+    font-bold
+    leading-tight
+    tracking-tight
+    text-white
+    sm:text-3xl
+    lg:text-[2.15rem]
+  "
+>
+  <motion.span
+    initial={{ opacity: 0 }}
+    animate={{ opacity: 1 }}
+    transition={{ duration: 0.5, delay: 0.15 }}
+  >
+    {greeting},{" "}
+  </motion.span>
 
-            <div className="mt-8">
+  <motion.span
+    initial={{ opacity: 0, x: 8 }}
+    animate={{ opacity: 1, x: 0 }}
+    transition={{
+      duration: 0.55,
+      delay: 0.3,
+      ease: "easeOut",
+    }}
+    className="text-white"
+  >
+    {name}
+  </motion.span>
+
+  <motion.span
+    initial={{ opacity: 0, scale: 0.7 }}
+    animate={{ opacity: 1, scale: 1 }}
+    transition={{
+      duration: 0.4,
+      delay: 0.5,
+      type: "spring",
+      stiffness: 220,
+      damping: 12,
+    }}
+    className="ml-1.5 inline-block text-lg sm:text-xl"
+  >
+    ✦
+  </motion.span>
+</motion.h1>
+
+<motion.p
+  initial={{ opacity: 0, y: 6 }}
+  animate={{ opacity: 1, y: 0 }}
+  transition={{
+    duration: 0.5,
+    delay: 0.45,
+  }}
+  className="mt-2 text-sm text-gray-400 sm:text-base"
+>
+  Let's move your career forward.
+</motion.p>
+            
+
+            {/* ==========================================
+                CAREER READINESS
+            ========================================== */}
+
+            <div className="mt-5 max-w-xl">
 
               <div className="mb-2 flex items-center justify-between">
 
-                <span className="text-sm font-medium text-gray-300">
+                <span className="text-xs font-medium text-gray-300 sm:text-sm">
                   Career readiness
                 </span>
 
@@ -120,48 +253,144 @@ export default function WelcomeBanner({ data, loading }) {
 
               </div>
 
-              <div className="h-3 overflow-hidden rounded-full bg-white/10">
+              {/* PROGRESS BAR */}
 
-                <div
-                  className="h-full rounded-full bg-gradient-to-r from-violet-500 to-cyan-400 transition-all duration-1000"
-                  style={{
+              <div className="h-2 overflow-hidden rounded-full bg-white/10 sm:h-2.5">
+
+                <motion.div
+                  initial={{ width: 0 }}
+                  animate={{
                     width: `${readiness}%`,
                   }}
+                  transition={{
+                    duration: 1,
+                    delay: 0.2,
+                    ease: "easeOut",
+                  }}
+                  className="
+                    h-full
+                    rounded-full
+                    bg-gradient-to-r
+                    from-violet-500
+                    via-purple-400
+                    to-cyan-400
+                  "
                 />
 
               </div>
 
-              <p className="mt-3 text-sm text-gray-500">
-                {readiness >= 70
-                  ? "You're making strong progress toward your target role."
-                  : readiness > 0
-                  ? "You're making steady progress toward your target role."
-                  : "Complete your profile and career analysis to get started."}
-              </p>
+              {/* MESSAGE */}
+
+              <div className="mt-2.5 flex items-start gap-2">
+
+                <TrendingUp
+                  size={13}
+                  className="mt-0.5 shrink-0 text-emerald-400"
+                />
+
+                <p className="text-xs leading-5 text-gray-500 sm:text-sm">
+                  {readinessMessage}
+                </p>
+
+              </div>
 
             </div>
 
           </div>
+        </div>
 
-          {/* Career visual */}
+        {/* ==================================================
+            RIGHT — ILLUSTRATION
+        ================================================== */}
 
-          <div className="hidden h-44 w-44 shrink-0 items-center justify-center rounded-full border border-violet-500/20 bg-violet-500/5 lg:flex">
+        <div className="pointer-events-none absolute inset-y-0 right-0 hidden w-[50%] lg:block">
 
-            <div className="flex h-32 w-32 items-center justify-center rounded-full border border-cyan-400/20 bg-gradient-to-br from-violet-500/10 to-cyan-500/10">
+          {/* ------------------------------------------
+              SOFT GLOW BEHIND ILLUSTRATION
+          ------------------------------------------ */}
 
-              <Sparkles
-                size={42}
-                className="text-violet-300"
-              />
+          <div
+            className="
+              absolute
+              right-[8%]
+              top-1/2
+              h-[300px]
+              w-[400px]
+              -translate-y-1/2
+              rounded-full
+              bg-violet-600/10
+              blur-[80px]
+            "
+          />
 
-            </div>
+          {/* ------------------------------------------
+              IMAGE
+              
+              The mask is the important fix.
+              It fades the baked-in dark background
+              of the PNG into our banner background.
+          ------------------------------------------ */}
 
-          </div>
+          <motion.img
+            src="/career-banner.png"
+            alt="CareerPilot AI career illustration"
+            initial={{
+              opacity: 0,
+              x: 25,
+            }}
+            animate={{
+              opacity: 1,
+              x: 0,
+            }}
+            transition={{
+              duration: 0.7,
+              delay: 0.15,
+              ease: "easeOut",
+            }}
+            className="
+              absolute
+              right-[-3%]
+              top-1/2
+              h-[108%]
+              w-auto
+              max-w-none
+              -translate-y-1/2
+              object-contain
+              object-right
+
+              [mask-image:linear-gradient(to_right,transparent_0%,rgba(0,0,0,0.35)_12%,black_28%,black_100%)]
+              [-webkit-mask-image:linear-gradient(to_right,transparent_0%,rgba(0,0,0,0.35)_12%,black_28%,black_100%)]
+
+              mix-blend-screen
+            "
+          />
+
+        </div>
+
+        {/* ==================================================
+            TABLET VISUAL
+        ================================================== */}
+
+        <div className="pointer-events-none absolute -right-24 top-1/2 hidden -translate-y-1/2 opacity-30 md:block lg:hidden">
+
+          <img
+            src="/career-banner.png"
+            alt=""
+            aria-hidden="true"
+            className="
+              h-[260px]
+              w-auto
+              max-w-none
+              object-contain
+              mix-blend-screen
+              [mask-image:linear-gradient(to_right,transparent,black_45%)]
+              [-webkit-mask-image:linear-gradient(to_right,transparent,black_45%)]
+            "
+          />
 
         </div>
 
       </div>
-
-    </motion.div>
+    </motion.section>
   );
 }

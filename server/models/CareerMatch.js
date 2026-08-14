@@ -20,6 +20,12 @@ const careerMatchSchema = new mongoose.Schema(
       trim: true,
     },
 
+    targetCompany: {
+  type: String,
+  default: "",
+  trim: true,
+},
+
     jobDescription: {
       type: String,
       default: "",

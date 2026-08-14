@@ -10,6 +10,10 @@ export default function ActivityCard({ data, loading }) {
   const interviews = data?.interviews || [];
   const applications = data?.applications || [];
 
+  /* =========================================================
+     BUILD ACTIVITY LIST
+  ========================================================= */
+
   if (careerMatches.length > 0) {
     activities.push({
       title: "Career Match generated",
@@ -60,108 +64,499 @@ export default function ActivityCard({ data, loading }) {
     });
   }
 
+  /* =========================================================
+     LOADING
+  ========================================================= */
+
   if (loading) {
     return (
-      <div className="animate-pulse">
+      <div
+        className="
+          relative
+          overflow-hidden
+          rounded-[24px]
+          border
+          border-white/[0.08]
+          bg-[#101522]/90
+          p-4
+          shadow-[0_20px_60px_rgba(0,0,0,0.12)]
+          backdrop-blur-xl
+          sm:p-5
+        "
+      >
+        <div className="animate-pulse">
 
-        <div className="mb-5">
-          <div className="h-6 w-40 rounded bg-white/10" />
+          <div className="flex items-center gap-3">
 
-          <div className="mt-2 h-4 w-52 rounded bg-white/10" />
-        </div>
-
-        <div className="space-y-5">
-          {[1, 2, 3, 4].map((item) => (
             <div
-              key={item}
-              className="h-8 rounded bg-white/5"
+              className="
+                h-8
+                w-8
+                rounded-xl
+                bg-white/[0.06]
+              "
             />
-          ))}
-        </div>
 
+            <div>
+              <div
+                className="
+                  h-2
+                  w-24
+                  rounded
+                  bg-white/[0.06]
+                "
+              />
+
+              <div
+                className="
+                  mt-2
+                  h-4
+                  w-36
+                  rounded
+                  bg-white/[0.07]
+                "
+              />
+            </div>
+
+          </div>
+
+          <div className="mt-4 space-y-2.5">
+
+            {[1, 2, 3, 4].map((item) => (
+              <div
+                key={item}
+                className="
+                  flex
+                  items-center
+                  gap-3
+                  px-2
+                  py-2
+                "
+              >
+                <div
+                  className="
+                    h-2
+                    w-2
+                    rounded-full
+                    bg-white/[0.07]
+                  "
+                />
+
+                <div
+                  className="
+                    h-2.5
+                    w-40
+                    rounded
+                    bg-white/[0.06]
+                  "
+                />
+              </div>
+            ))}
+
+          </div>
+
+        </div>
       </div>
     );
   }
 
+  /* =========================================================
+     MAIN CARD
+  ========================================================= */
+
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 15 }}
-      animate={{ opacity: 1, y: 0 }}
-      className="border-t border-white/10 pt-8"
+    <motion.section
+      initial={{
+        opacity: 0,
+        y: 15,
+      }}
+      animate={{
+        opacity: 1,
+        y: 0,
+      }}
+      transition={{
+        duration: 0.5,
+        ease: [0.22, 1, 0.36, 1],
+      }}
+      className="
+        group
+        relative
+        overflow-hidden
+        rounded-[24px]
+        border
+        border-white/[0.08]
+        bg-[#101522]/90
+        p-4
+        shadow-[0_20px_60px_rgba(0,0,0,0.12)]
+        backdrop-blur-xl
+        sm:p-5
+      "
     >
 
-      <div className="mb-6">
+      {/* =====================================================
+          AMBIENT BACKGROUND
+      ===================================================== */}
 
-        <p className="text-xs font-semibold uppercase tracking-[3px] text-violet-300">
-          Activity
-        </p>
+      <div
+        className="
+          pointer-events-none
+          absolute
+          -right-20
+          -top-20
+          h-44
+          w-44
+          rounded-full
+          bg-violet-600/[0.055]
+          blur-[75px]
+        "
+      />
 
-        <h2 className="mt-2 text-2xl font-bold text-white">
-          Recent Activity
-        </h2>
+      <div
+        className="
+          pointer-events-none
+          absolute
+          -bottom-20
+          left-1/3
+          h-36
+          w-36
+          rounded-full
+          bg-cyan-500/[0.035]
+          blur-[70px]
+        "
+      />
 
-        <p className="mt-1 text-sm text-gray-500">
-          Your latest career progress
-        </p>
+      {/* =====================================================
+          HEADER
+      ===================================================== */}
+
+      <div
+        className="
+          relative
+          z-10
+          flex
+          items-center
+          justify-between
+        "
+      >
+
+        <div className="flex items-center gap-2.5">
+
+          {/* ONLY ICON IN THE CARD */}
+
+          <motion.div
+            animate={{
+              rotate: [0, 4, -4, 0],
+              scale: [1, 1.03, 1],
+            }}
+            transition={{
+              duration: 4,
+              repeat: Infinity,
+              ease: "easeInOut",
+            }}
+            className="
+              flex
+              h-8
+              w-8
+              shrink-0
+              items-center
+              justify-center
+              rounded-xl
+              border
+              border-violet-400/10
+              bg-violet-500/[0.08]
+              shadow-[0_0_22px_rgba(139,92,246,0.07)]
+            "
+          >
+            <CheckCircle2
+              size={15}
+              className="text-violet-300"
+            />
+          </motion.div>
+
+          <div>
+
+            <p
+              className="
+                text-[8px]
+                font-semibold
+                uppercase
+                tracking-[2.3px]
+                text-violet-300/70
+              "
+            >
+              Activity
+            </p>
+
+            <h3
+              className="
+                mt-0.5
+                text-base
+                font-bold
+                tracking-tight
+                text-white
+              "
+            >
+              Recent Activity
+            </h3>
+
+          </div>
+
+        </div>
+
+        {/* LIVE */}
+
+        <motion.div
+          animate={{
+            opacity: [0.45, 0.9, 0.45],
+          }}
+          transition={{
+            duration: 2.5,
+            repeat: Infinity,
+          }}
+          className="
+            hidden
+            items-center
+            gap-1.5
+            rounded-full
+            border
+            border-emerald-400/10
+            bg-emerald-400/[0.04]
+            px-2
+            py-1
+            sm:flex
+          "
+        >
+
+          <span
+            className="
+              h-1.5
+              w-1.5
+              rounded-full
+              bg-emerald-400
+            "
+          />
+
+          <span
+            className="
+              text-[8px]
+              font-medium
+              uppercase
+              tracking-[1px]
+              text-gray-600
+            "
+          >
+            Live
+          </span>
+
+        </motion.div>
 
       </div>
 
-      {activities.length === 0 ? (
-        <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-6">
+      {/* =====================================================
+          ACTIVITY LIST
+      ===================================================== */}
 
-          <p className="text-sm text-gray-400">
-            No activity yet. Start by uploading your resume.
-          </p>
+      <div className="relative z-10 mt-3.5">
 
-        </div>
-      ) : (
-        <div className="space-y-5">
+        {activities.length === 0 ? (
 
-          {activities.slice(0, 5).map(
-            (activity, index) => (
-              <div
-                key={`${activity.title}-${index}`}
-                className="flex items-center gap-4"
-              >
+          <div
+            className="
+              rounded-xl
+              border
+              border-white/[0.06]
+              bg-white/[0.025]
+              px-3.5
+              py-3
+            "
+          >
+            <p
+              className="
+                text-[11px]
+                leading-5
+                text-gray-500
+              "
+            >
+              No activity yet. Start by uploading
+              your resume.
+            </p>
+          </div>
 
-                {/* Timeline icon */}
+        ) : (
 
-                <div className="relative flex h-8 w-8 shrink-0 items-center justify-center">
+          <div className="space-y-0.5">
 
-                  <CheckCircle2
-                    size={18}
-                    className="text-emerald-400"
-                  />
+            {activities.slice(0, 5).map(
+              (activity, index) => {
 
-                  {index !==
-                    Math.min(activities.length, 5) - 1 && (
-                    <div className="absolute left-1/2 top-8 h-5 w-px -translate-x-1/2 bg-white/10" />
-                  )}
+                const isLast =
+                  index ===
+                  Math.min(
+                    activities.length,
+                    5
+                  ) - 1;
 
-                </div>
+                return (
+                  <motion.div
+                    key={`${activity.title}-${index}`}
+                    initial={{
+                      opacity: 0,
+                      x: -8,
+                    }}
+                    animate={{
+                      opacity: 1,
+                      x: 0,
+                    }}
+                    transition={{
+                      delay: index * 0.06,
+                      duration: 0.35,
+                    }}
+                    whileHover={{
+                      x: 3,
+                    }}
+                    className="
+                      group/activity
+                      relative
+                      flex
+                      items-center
+                      gap-3
+                      rounded-xl
+                      px-2
+                      py-2
+                      transition-all
+                      duration-300
+                      hover:bg-white/[0.025]
+                    "
+                  >
 
-                {/* Activity */}
+                    {/* =================================================
+                        TIMELINE
+                    ================================================= */}
 
-                <div className="flex w-full items-center justify-between">
+                    <div
+                      className="
+                        relative
+                        flex
+                        h-7
+                        w-3
+                        shrink-0
+                        items-center
+                        justify-center
+                      "
+                    >
 
-                  <p className="text-sm text-gray-300">
-                    {activity.title}
-                  </p>
+                      {/* Connecting line */}
 
-                  <span className="text-xs text-gray-600">
-                    {activity.time}
-                  </span>
+                      {!isLast && (
+                        <div
+                          className="
+                            absolute
+                            left-1/2
+                            top-[18px]
+                            h-[23px]
+                            w-px
+                            -translate-x-1/2
+                            bg-white/[0.07]
+                          "
+                        />
+                      )}
 
-                </div>
+                      {/* Animated dot */}
 
-              </div>
-            )
-          )}
+                      {/*<motion.span
+                        animate={{
+                          scale: [1, 1.15, 1],
+                          opacity: [0.65, 1, 0.65],
+                        }}
+                        transition={{
+                          duration: 2.5,
+                          repeat: Infinity,
+                          delay: index * 0.15,
+                        }}
+                        className="
+                          relative
+                          z-10
+                          h-1.5
+                          w-1.5
+                          rounded-full
+                          bg-violet-400
+                          shadow-[0_0_10px_rgba(139,92,246,0.55)]
+                        "
+                      />*/}
 
-        </div>
-      )}
+{/* Animated dot */}
 
-    </motion.div>
+                      <motion.span
+                        animate={{
+                          scale: [1, 1.15, 1],
+                          opacity: [0.65, 1, 0.65],
+                        }}
+                        transition={{
+                          duration: 2.5,
+                          repeat: Infinity,
+                          delay: index * 0.15,
+                        }}
+                        className="
+                          relative
+                          z-10
+                          h-1.5
+                          w-1.5
+                          rounded-full
+                          bg-violet-400
+                          shadow-[0_0_10px_rgba(139,92,246,0.55)]
+                        "
+                      />
+
+                    </div>
+
+                    {/* =================================================
+                        ACTIVITY TEXT
+                    ================================================= */}
+
+                    <div className="min-w-0 flex-1">
+
+                      <p
+                        className="
+                          truncate
+                          text-[11px]
+                          font-medium
+                          text-gray-300
+                          transition-colors
+                          duration-300
+                          group-hover/activity:text-white
+                        "
+                      >
+                        {activity.title}
+                      </p>
+
+                    </div>
+
+                    {/* =================================================
+                        TIME
+                    ================================================= */}
+
+                    <span
+                      className="
+                        shrink-0
+                        text-[9px]
+                        text-gray-600
+                      "
+                    >
+                      {activity.time}
+                    </span>
+
+                  </motion.div>
+                );
+              }
+            )}
+
+          </div>
+
+        )}
+
+      </div>
+
+    </motion.section>
   );
 }
 
@@ -183,10 +578,9 @@ function formatTime(dateValue) {
 
   const now = new Date();
 
-  const diff =
-    Math.floor(
-      (now.getTime() - date.getTime()) / 1000
-    );
+  const diff = Math.floor(
+    (now.getTime() - date.getTime()) / 1000
+  );
 
   const minutes = Math.floor(diff / 60);
   const hours = Math.floor(diff / 3600);

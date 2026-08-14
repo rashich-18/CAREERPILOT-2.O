@@ -139,14 +139,12 @@ export const uploadResume = async (req, res) => {
   }
 };
 
-
 // ==========================================
 // GET RESUME HISTORY
 // ==========================================
 
 export const getResumeHistory = async (req, res) => {
   try {
-
     // ==========================================
     // CHECK AUTHENTICATION
     // ==========================================
@@ -167,7 +165,6 @@ export const getResumeHistory = async (req, res) => {
       });
     }
 
-
     // ==========================================
     // GET ALL USER RESUMES
     // ==========================================
@@ -176,12 +173,12 @@ export const getResumeHistory = async (req, res) => {
       user: userId,
     })
       .select(
-        "_id fileName uploadedAt createdAt isCurrent analysis.summary"
+        "_id fileName uploadedAt createdAt isCurrent analysis.resumeScore analysis.summary"
       )
       .sort({
         createdAt: -1,
-      });
-
+      })
+      .lean();
 
     // ==========================================
     // RESPONSE
@@ -189,11 +186,16 @@ export const getResumeHistory = async (req, res) => {
 
     res.status(200).json({
       success: true,
-      resumes: resumes,
+
+      resumes: resumes.map((resume) => ({
+        ...resume,
+
+        // Convenient top-level score for dashboard
+        score:
+          resume?.analysis?.resumeScore?.overall ?? 0,
+      })),
     });
-
   } catch (error) {
-
     console.error("RESUME HISTORY ERROR:", error);
 
     res.status(500).json({
@@ -203,6 +205,7 @@ export const getResumeHistory = async (req, res) => {
     });
   }
 };
+
 
 
 // ==========================================

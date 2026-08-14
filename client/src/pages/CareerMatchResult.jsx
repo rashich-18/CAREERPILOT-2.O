@@ -16,6 +16,7 @@ import {
   Sparkles,
   XCircle,
   Loader2,
+  Building,
 } from "lucide-react";
 import { useNavigate, useParams } from "react-router-dom";
 import toast from "react-hot-toast";
@@ -192,6 +193,13 @@ function AssessmentCard({
         <h2 className="mb-3 text-2xl font-bold tracking-tight text-white">
           {title}
         </h2>
+
+        {description && (
+  <p className="mt-3 text-sm leading-7 text-slate-400">
+    {description}
+  </p>
+)}
+
 
         
 
@@ -467,6 +475,13 @@ export default function CareerMatchResult() {
                   <BriefcaseBusiness className="h-3.5 w-3.5" />
                   {careerMatch.targetRole}
                 </span>
+
+                <span className="flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.04] px-3 py-1.5 text-xs text-slate-400">
+                  <Building className="h-3.5 w-3.5" />
+                  {careerMatch.targetCompany || "Not specified"}
+                </span>
+
+
               </div>
 
               <h1 className="max-w-3xl text-3xl font-bold tracking-tight sm:text-5xl">

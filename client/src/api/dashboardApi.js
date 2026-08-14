@@ -1,4 +1,3 @@
-
 import axios from "axios";
 
 const API = axios.create({
@@ -8,7 +7,10 @@ const API = axios.create({
   },
 });
 
-// Attach JWT
+// ==========================================
+// ATTACH JWT
+// ==========================================
+
 API.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem("token");
@@ -41,14 +43,34 @@ export const getDashboardData = async () => {
     API.get("/job-applications"),
   ]);
 
+  console.log(
+    "🎯 CAREER MATCH API:",
+    careerMatchResponse.data
+  );
+
+  const careerMatchData = careerMatchResponse.data;
+
   return {
     resumes: resumeResponse.data?.resumes || [],
+
+    // ==========================================
+    // CAREER MATCH
+    // Supports different backend response shapes
+    // ==========================================
+
     careerMatches:
-      careerMatchResponse.data?.careerMatches || [],
+      careerMatchData?.careerMatches ||
+      careerMatchData?.careerMatch ||
+      careerMatchData?.matches ||
+      careerMatchData?.data ||
+      [],
+
     roadmaps:
       roadmapResponse.data?.roadmaps || [],
+
     interviews:
       interviewResponse.data?.interviews || [],
+
     applications:
       applicationResponse.data?.applications || [],
   };

@@ -2,7 +2,11 @@ import { useEffect, useState } from "react";
 import DashboardLayout from "../components/dashboard/DashboardLayout";
 import WelcomeBanner from "../components/dashboard/WelcomeBanner";
 import CareerSnapshot from "../components/dashboard/CareerSnapshot";
-import RecentActivity from "../components/dashboard/ActivityCard";
+import ActivityCard from "../components/dashboard/ActivityCard";
+import TodaysFocus from "../components/dashboard/TodaysFocus";
+import ContinueJourney from "../components/dashboard/ContinueJourney";
+import LatestCareerMatch from "../components/dashboard/LatestCareerMatch";
+import QuickActions from "../components/dashboard/QuickActions";
 import { getDashboardData } from "../api/dashboardApi";
 
 export default function Dashboard() {
@@ -21,6 +25,7 @@ export default function Dashboard() {
     const loadDashboard = async () => {
       try {
         setLoading(true);
+        setError("");
 
         const data = await getDashboardData();
 
@@ -34,26 +39,248 @@ export default function Dashboard() {
     };
 
     loadDashboard();
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "visible") {
+        loadDashboard();
+      }
+    };
+
+    document.addEventListener(
+      "visibilitychange",
+      handleVisibilityChange
+    );
+
+    return () => {
+      document.removeEventListener(
+        "visibilitychange",
+        handleVisibilityChange
+      );
+    };
   }, []);
 
   return (
     <DashboardLayout>
-      <div className="space-y-10">
+      <div className="mx-auto w-full max-w-[1600px] space-y-8 pb-12 sm:space-y-10">
 
-        {/* HERO */}
+        {/* =====================================================
+            HERO
+        ===================================================== */}
+
         <WelcomeBanner
           data={dashboardData}
           loading={loading}
         />
 
-        {/* ERROR */}
+        {/* =====================================================
+            ERROR
+        ===================================================== */}
+
         {error && (
           <div className="rounded-2xl border border-red-500/20 bg-red-500/10 px-5 py-4 text-sm text-red-300">
             {error}
           </div>
         )}
 
-        {/* CAREER SNAPSHOT */}
+        {/* =====================================================
+            SNAPSHOT + TODAY'S FOCUS
+        ===================================================== */}
+<section className="grid items-stretch gap-6 xl:grid-cols-[minmax(0,1fr)_360px]">
+
+  {/* LEFT */}
+  <div className="flex min-w-0 flex-col">
+
+    <SectionHeading
+      eyebrow="Overview"
+      title="Your career at a glance"
+      description="A quick look at your current career readiness."
+    />
+
+    <div className="mt-6 flex-1">
+      <CareerSnapshot
+        data={dashboardData}
+        loading={loading}
+      />
+    </div>
+
+  </div>
+
+  {/* RIGHT */}
+  <div className="h-full">
+    <TodaysFocus
+      data={dashboardData}
+      loading={loading}
+    />
+  </div>
+
+</section>
+
+{/* =====================================================
+    JOURNEY + CAREER MATCH
+===================================================== */}
+
+<section className="grid items-stretch gap-6 lg:grid-cols-[1.1fr_0.9fr]">
+
+  {/* Continue Your Journey */}
+
+  <div className="min-w-0">
+    <ContinueJourney
+      data={dashboardData}
+      loading={loading}
+    />
+  </div>
+
+  {/* Latest Career Match */}
+
+  <div className="min-w-0">
+    <LatestCareerMatch
+      data={dashboardData}
+      loading={loading}
+    />
+  </div>
+
+</section>
+        
+{/* =====================================================
+    QUICK ACTIONS + RECENT ACTIVITY
+===================================================== */}
+
+<section className="grid items-stretch gap-5 xl:grid-cols-[0.82fr_1.18fr]">
+
+  {/* ===================================================
+      QUICK ACTIONS
+  =================================================== */}
+
+  <div className="min-w-0">
+    <QuickActions
+      data={dashboardData}
+    />
+  </div>
+
+  {/* ===================================================
+      RECENT ACTIVITY
+  =================================================== */}
+
+  <div className="min-w-0">
+    <ActivityCard
+      data={dashboardData}
+      loading={loading}
+    />
+  </div>
+
+</section>
+        
+      </div>
+    </DashboardLayout>
+  );
+}
+
+/* =========================================================
+   SECTION HEADING
+========================================================= */
+
+function SectionHeading({
+  eyebrow,
+  title,
+  description,
+}) {
+  return (
+    <div className="mb-5">
+      <p className="text-[10px] font-semibold uppercase tracking-[3px] text-violet-300/80 sm:text-[11px]">
+        {eyebrow}
+      </p>
+
+      <h2 className="mt-1.5 text-xl font-bold tracking-tight text-white sm:text-2xl">
+        {title}
+      </h2>
+
+      <p className="mt-1 text-sm text-gray-500">
+        {description}
+      </p>
+    </div>
+  );
+}
+
+
+
+
+
+
+{/*import { useEffect, useState } from "react";
+import DashboardLayout from "../components/dashboard/DashboardLayout";
+import WelcomeBanner from "../components/dashboard/WelcomeBanner";
+import CareerSnapshot from "../components/dashboard/CareerSnapshot";
+import RecentActivity from "../components/dashboard/ActivityCard";
+import { getDashboardData } from "../api/dashboardApi";
+
+export default function Dashboard() {
+  const [dashboardData, setDashboardData] = useState({
+    resumes: [],
+    careerMatches: [],
+    roadmaps: [],
+    interviews: [],
+    applications: [],
+  });
+
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+  const loadDashboard = async () => {
+    try {
+      setLoading(true);
+      setError("");
+
+      const data = await getDashboardData();
+
+      setDashboardData(data);
+    } catch (err) {
+      console.error("Dashboard API Error:", err);
+      setError("Unable to load dashboard data.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  loadDashboard();
+
+  const handleVisibilityChange = () => {
+    if (document.visibilityState === "visible") {
+      loadDashboard();
+    }
+  };
+
+  document.addEventListener(
+    "visibilitychange",
+    handleVisibilityChange
+  );
+
+  return () => {
+    document.removeEventListener(
+      "visibilitychange",
+      handleVisibilityChange
+    );
+  };
+}, []);
+
+  return (
+    <DashboardLayout>
+      <div className="space-y-10">
+
+        {/* HERO 
+        <WelcomeBanner
+          data={dashboardData}
+          loading={loading}
+        />
+
+        {/* ERROR 
+        {error && (
+          <div className="rounded-2xl border border-red-500/20 bg-red-500/10 px-5 py-4 text-sm text-red-300">
+            {error}
+          </div>
+        )}
+
+        {/* CAREER SNAPSHOT 
         <section>
           <div className="mb-5">
             <p className="text-xs font-semibold uppercase tracking-[3px] text-violet-300">
@@ -71,61 +298,7 @@ export default function Dashboard() {
           />
         </section>
 
-        {/* CONTINUE YOUR JOURNEY */}
-        <section>
-          <div className="mb-5">
-            <p className="text-xs font-semibold uppercase tracking-[3px] text-violet-300">
-              Keep Going
-            </p>
-
-            <h2 className="mt-2 text-2xl font-bold text-white">
-              Continue Your Journey
-            </h2>
-          </div>
-
-          <ContinueJourney
-            data={dashboardData}
-            loading={loading}
-          />
-        </section>
-
-        {/* LATEST CAREER MATCH */}
-        <section>
-          <div className="mb-5">
-            <p className="text-xs font-semibold uppercase tracking-[3px] text-violet-300">
-              AI Analysis
-            </p>
-
-            <h2 className="mt-2 text-2xl font-bold text-white">
-              Latest Career Match
-            </h2>
-          </div>
-
-          <LatestCareerMatch
-            data={dashboardData}
-            loading={loading}
-          />
-        </section>
-
-        {/* ROADMAP */}
-        <section>
-          <div className="mb-5">
-            <p className="text-xs font-semibold uppercase tracking-[3px] text-violet-300">
-              Learning Path
-            </p>
-
-            <h2 className="mt-2 text-2xl font-bold text-white">
-              Your Roadmap
-            </h2>
-          </div>
-
-          <RoadmapProgress
-            data={dashboardData}
-            loading={loading}
-          />
-        </section>
-
-        {/* ACTIVITY */}
+        {/* ACTIVITY 
         <section>
           <RecentActivity
             data={dashboardData}
@@ -136,12 +309,27 @@ export default function Dashboard() {
       </div>
     </DashboardLayout>
   );
-}
+}*/}
 
 
-/* =========================================================
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+{/* =========================================================
    CONTINUE JOURNEY
-========================================================= */
+========================================================= 
 
 function ContinueJourney({ data, loading }) {
   const roadmap = data?.roadmaps?.[0];
@@ -244,9 +432,9 @@ function ContinueJourney({ data, loading }) {
 }
 
 
-/* =========================================================
+=========================================================
    LATEST CAREER MATCH
-========================================================= */
+========================================================= 
 
 function LatestCareerMatch({ data, loading }) {
   const match = data?.careerMatches?.[0];
@@ -386,9 +574,9 @@ function LatestCareerMatch({ data, loading }) {
 }
 
 
-/* =========================================================
+=========================================================
    ROADMAP
-========================================================= */
+=========================================================
 
 function RoadmapProgress({ data, loading }) {
   const roadmap = data?.roadmaps?.[0];
@@ -495,9 +683,9 @@ function RoadmapProgress({ data, loading }) {
 }
 
 
-/* =========================================================
+=========================================================
    HELPERS
-========================================================= */
+========================================================= 
 
 function LoadingCard() {
   return (
@@ -544,4 +732,4 @@ function EmptyCard({
 
     </div>
   );
-}
+} */}

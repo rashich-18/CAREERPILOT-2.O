@@ -26,11 +26,13 @@ API.interceptors.request.use((config) => {
 export const createCareerMatch = async ({
   resumeId,
   targetRole,
+  targetCompany,
   jobDescription,
 }) => {
   const response = await API.post("/", {
     resumeId,
     targetRole,
+    targetCompany,
     jobDescription,
   });
 
@@ -58,3 +60,14 @@ export const getCareerMatchById = async (id) => {
 
   return response.data;
 };
+
+// ==========================================
+// DELETE CAREER MATCH
+// ==========================================
+
+export const deleteCareerMatch = async (id) => {
+  const response = await API.delete(`/${id}`);
+
+  return response.data;
+};
+
