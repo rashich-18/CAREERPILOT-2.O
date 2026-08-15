@@ -1,5 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
+import PageBackground from "../components/common/PageBackground";
+
 import {
   ArrowLeft,
   Check,
@@ -15,8 +17,8 @@ import {
   Brain,
   Code2,
   MessageSquare,
-  RotateCcw,
 } from "lucide-react";
+
 import { useNavigate, useParams } from "react-router-dom";
 import toast from "react-hot-toast";
 
@@ -97,7 +99,6 @@ export default function Roadmap() {
         if (response?.success && response?.roadmap) {
           setRoadmap(response.roadmap);
 
-          // Open all phases initially
           const initialExpanded = {};
 
           response.roadmap.phases?.forEach((phase) => {
@@ -128,7 +129,7 @@ export default function Roadmap() {
   }, [id]);
 
   // ==========================================================
-  // CALCULATE PROGRESS FROM TASKS
+  // CALCULATE PROGRESS
   // ==========================================================
 
   const calculatedProgress = useMemo(() => {
@@ -192,29 +193,28 @@ export default function Roadmap() {
   // ==========================================================
 
   const handleTaskToggle = async (
-  phaseId,
-  taskId,
-  completed
-) => {
-  if (!roadmap) return;
+    phaseId,
+    taskId,
+    completed
+  ) => {
+    if (!roadmap) return;
 
-  const updateKey = `${phaseId}-${taskId}`;
+    const updateKey = `${phaseId}-${taskId}`;
 
-  try {
-    setUpdatingTask(updateKey);
+    try {
+      setUpdatingTask(updateKey);
 
-    // ========================================================
-    // OPTIMISTIC UPDATE
-    // ========================================================
+      // ========================================================
+      // OPTIMISTIC UPDATE
+      // ========================================================
 
-    setRoadmap((previous) => {
-      if (!previous) return previous;
+      setRoadmap((previous) => {
+        if (!previous) return previous;
 
-      return {
-        ...previous,
+        return {
+          ...previous,
 
-        phases: previous.phases.map(
-          (phase) => {
+          phases: previous.phases.map((phase) => {
             if (phase._id !== phaseId) {
               return phase;
             }
@@ -222,99 +222,90 @@ export default function Roadmap() {
             return {
               ...phase,
 
-              tasks: phase.tasks.map(
-                (task) => {
-                  if (task._id !== taskId) {
-                    return task;
-                  }
-
-                  return {
-                    ...task,
-                    completed,
-                  };
+              tasks: phase.tasks.map((task) => {
+                if (task._id !== taskId) {
+                  return task;
                 }
-              ),
+
+                return {
+                  ...task,
+                  completed,
+                };
+              }),
             };
-          }
-        ),
-      };
-    });
+          }),
+        };
+      });
 
-    // ========================================================
-    // BACKEND UPDATE
-    // ========================================================
+      // ========================================================
+      // BACKEND UPDATE
+      // ========================================================
 
-    const response =
-      await updateRoadmapProgress(
+      const response = await updateRoadmapProgress(
         roadmap._id,
         phaseId,
         taskId,
         completed
       );
 
-    console.log(
-      "✅ ROADMAP PROGRESS RESPONSE:",
-      response
-    );
-
-    if (
-      response?.success &&
-      response?.roadmap
-    ) {
-      setRoadmap(response.roadmap);
-
-      toast.success(
-        completed
-          ? "Task completed!"
-          : "Task marked incomplete."
+      console.log(
+        "ROADMAP PROGRESS RESPONSE:",
+        response
       );
-    } else {
-      throw new Error(
-        response?.message ||
-          "Failed to update task."
-      );
-    }
-
-  } catch (err) {
-
-    console.error(
-      "❌ UPDATE ROADMAP ERROR:",
-      err
-    );
-
-    // ========================================================
-    // ROLLBACK
-    // ========================================================
-
-    try {
-      const response =
-        await getRoadmapById(id);
 
       if (
         response?.success &&
         response?.roadmap
       ) {
-        setRoadmap(
-          response.roadmap
+        setRoadmap(response.roadmap);
+
+        toast.success(
+          completed
+            ? "Task completed!"
+            : "Task marked incomplete."
+        );
+      } else {
+        throw new Error(
+          response?.message ||
+            "Failed to update task."
         );
       }
-    } catch (reloadError) {
+    } catch (err) {
       console.error(
-        "ROADMAP RELOAD ERROR:",
-        reloadError
+        "UPDATE ROADMAP ERROR:",
+        err
       );
+
+      // ========================================================
+      // ROLLBACK
+      // ========================================================
+
+      try {
+        const response =
+          await getRoadmapById(id);
+
+        if (
+          response?.success &&
+          response?.roadmap
+        ) {
+          setRoadmap(response.roadmap);
+        }
+      } catch (reloadError) {
+        console.error(
+          "ROADMAP RELOAD ERROR:",
+          reloadError
+        );
+      }
+
+      toast.error(
+        err?.response?.data?.message ||
+          err.message ||
+          "Failed to update task progress."
+      );
+    } finally {
+      setUpdatingTask(null);
     }
-
-    toast.error(
-      err?.response?.data?.message ||
-        err.message ||
-        "Failed to update task progress."
-    );
-
-  } finally {
-    setUpdatingTask(null);
-  }
-};
+  };
 
   // ==========================================================
   // LOADING
@@ -340,8 +331,8 @@ export default function Roadmap() {
 
   if (error || !roadmap) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-[#050510] px-6 text-white">
-        <div className="w-full max-w-lg rounded-3xl border border-white/10 bg-[#101423] p-8 text-center">
+      <div className="flex min-h-screen items-center justify-center bg-[#050510] px-4 text-white">
+        <div className="w-full max-w-lg rounded-3xl border border-white/10 bg-[#101423] p-7 text-center">
           <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-rose-400/10">
             <Flag className="h-6 w-6 text-rose-300" />
           </div>
@@ -351,16 +342,35 @@ export default function Roadmap() {
           </h2>
 
           <p className="mt-3 text-sm leading-6 text-slate-400">
-            {error || "The roadmap could not be found."}
+            {error ||
+              "The roadmap could not be found."}
           </p>
 
-          <button
-            onClick={() => navigate("/career-match")}
-            className="mt-6 inline-flex items-center gap-2 rounded-xl bg-white px-5 py-3 text-sm font-semibold text-slate-950 transition hover:scale-[1.02]"
+          <motion.button
+            type="button"
+            onClick={() =>
+              navigate("/career-match")
+            }
+            initial={{
+              opacity: 0,
+              x: -8,
+            }}
+            animate={{
+              opacity: 1,
+              x: 0,
+            }}
+            whileHover={{
+              x: -2,
+            }}
+            whileTap={{
+              scale: 0.97,
+            }}
+            className="mt-6 inline-flex items-center gap-2 rounded-xl border border-white/[0.07] bg-white/[0.035] px-4 py-2.5 text-xs font-medium text-gray-400 transition hover:border-violet-500/30 hover:bg-white/[0.06] hover:text-white"
           >
-            <ArrowLeft className="h-4 w-4" />
+            <ArrowLeft size={16} />
+
             Back to Career Match
-          </button>
+          </motion.button>
         </div>
       </div>
     );
@@ -372,8 +382,9 @@ export default function Roadmap() {
 
   return (
     <div className="relative min-h-screen overflow-hidden bg-[#050510] text-white">
+
       {/* ==================================================
-          BACKGROUND ATMOSPHERE
+          BACKGROUND
       ================================================== */}
 
       <div className="pointer-events-none fixed inset-0 overflow-hidden">
@@ -384,25 +395,50 @@ export default function Roadmap() {
         <div className="absolute bottom-[-10%] left-[30%] h-[400px] w-[400px] rounded-full bg-purple-500/5 blur-[120px]" />
       </div>
 
-      <main className="relative mx-auto max-w-6xl px-5 py-8 sm:px-8 lg:px-10">
+      <PageBackground />
 
-        {/* ==================================================
+      {/* ==================================================
+          MAIN CONTAINER
+
+          IMPORTANT:
+          Wider than before to remove excessive side space.
+      ================================================== */}
+
+      <main className="relative mx-auto w-full max-w-[1500px] px-3 py-6 sm:px-5 sm:py-7 lg:px-6 xl:px-8">
+
+        {/* =================================================
             HEADER
         ================================================== */}
 
         <motion.div
-          initial={{ opacity: 0, y: -15 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="mb-8 flex items-center justify-between"
+          initial={{
+            opacity: 0,
+            y: -12,
+          }}
+          animate={{
+            opacity: 1,
+            y: 0,
+          }}
+          transition={{
+            duration: 0.4,
+          }}
+          className="mb-5 flex items-center justify-between"
         >
-          <button
+          <motion.button
+            type="button"
             onClick={() => navigate(-1)}
-            className="group flex items-center gap-2 rounded-xl px-3 py-2 text-sm text-slate-400 transition hover:bg-white/[0.05] hover:text-white"
+            whileHover={{
+              x: -2,
+            }}
+            whileTap={{
+              scale: 0.97,
+            }}
+            className="inline-flex items-center gap-2 rounded-xl border border-white/[0.07] bg-white/[0.035] px-4 py-2.5 text-xs font-medium text-gray-400 transition hover:border-violet-500/30 hover:bg-white/[0.06] hover:text-white"
           >
-            <ArrowLeft className="h-4 w-4 transition group-hover:-translate-x-1" />
+            <ArrowLeft size={16} />
 
             Back
-          </button>
+          </motion.button>
 
           <div className="flex items-center gap-2 text-xs text-slate-500">
             <Sparkles className="h-4 w-4 text-violet-300" />
@@ -416,18 +452,30 @@ export default function Roadmap() {
         ================================================== */}
 
         <motion.section
-          initial={{ opacity: 0, y: 25 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-          className="relative overflow-hidden rounded-[2rem] border border-white/10 bg-gradient-to-br from-[#14182a] via-[#101423] to-[#0c101d] p-7 shadow-2xl sm:p-10"
+          initial={{
+            opacity: 0,
+            y: 20,
+          }}
+          animate={{
+            opacity: 1,
+            y: 0,
+          }}
+          transition={{
+            duration: 0.45,
+          }}
+          className="relative overflow-hidden rounded-[1.75rem] border border-white/10 bg-gradient-to-br from-[#14182a] via-[#101423] to-[#0c101d] p-6 shadow-2xl sm:p-8 lg:p-9"
         >
+          {/* TOP GLOW */}
+
+          <div className="pointer-events-none absolute left-1/2 top-0 h-px w-2/3 -translate-x-1/2 bg-gradient-to-r from-transparent via-violet-400/60 to-transparent" />
+
           <div className="absolute right-[-80px] top-[-100px] h-[300px] w-[300px] rounded-full bg-violet-500/10 blur-[90px]" />
 
           <div className="relative">
 
             {/* BADGES */}
 
-            <div className="mb-5 flex flex-wrap items-center gap-3">
+            <div className="mb-4 flex flex-wrap items-center gap-2.5">
 
               <span className="flex items-center gap-2 rounded-full border border-violet-400/20 bg-violet-400/10 px-3 py-1.5 text-xs font-medium text-violet-200">
                 <Target className="h-3.5 w-3.5" />
@@ -445,19 +493,19 @@ export default function Roadmap() {
 
             {/* TITLE */}
 
-            <h1 className="max-w-4xl text-3xl font-bold tracking-tight sm:text-5xl">
+            <h1 className="max-w-5xl text-3xl font-bold tracking-tight sm:text-4xl lg:text-5xl">
               {roadmap.title}
             </h1>
 
             {roadmap.overview && (
-              <p className="mt-5 max-w-3xl leading-7 text-slate-400">
+              <p className="mt-4 max-w-4xl text-sm leading-7 text-slate-400 sm:text-base">
                 {roadmap.overview}
               </p>
             )}
 
             {/* PROGRESS */}
 
-            <div className="mt-10 border-t border-white/10 pt-8">
+            <div className="mt-7 border-t border-white/10 pt-6">
 
               <div className="mb-3 flex items-center justify-between">
 
@@ -472,16 +520,18 @@ export default function Roadmap() {
                   </p>
                 </div>
 
-                <span className="text-3xl font-bold text-white">
+                <span className="text-2xl font-bold text-white sm:text-3xl">
                   {calculatedProgress}%
                 </span>
 
               </div>
 
-              <div className="h-3 overflow-hidden rounded-full bg-white/[0.06]">
+              <div className="h-2.5 overflow-hidden rounded-full bg-white/[0.06]">
 
                 <motion.div
-                  initial={{ width: 0 }}
+                  initial={{
+                    width: 0,
+                  }}
                   animate={{
                     width: `${calculatedProgress}%`,
                   }}
@@ -502,273 +552,315 @@ export default function Roadmap() {
             ROADMAP PHASES
         ================================================== */}
 
-        <section className="mt-12">
+        <section className="mt-8">
 
-          <div className="mb-7">
+          {/* SECTION HEADER */}
+
+          <div className="mb-5">
 
             <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">
               Your plan
             </p>
 
-            <h2 className="mt-2 text-2xl font-bold">
+            <h2 className="mt-1.5 text-2xl font-bold">
               Step-by-step roadmap
             </h2>
 
-            <p className="mt-2 text-sm text-slate-500">
+            <p className="mt-1.5 text-sm text-slate-500">
               Work through each phase and complete the tasks at
               your own pace.
             </p>
 
           </div>
 
+          {/* PHASES */}
+
           {roadmap.phases?.length > 0 ? (
-            <div className="space-y-5">
+            <div className="space-y-4">
 
               {roadmap.phases
                 .slice()
-                .sort((a, b) => (a.order || 0) - (b.order || 0))
-                .map((phase, phaseIndex) => {
+                .sort(
+                  (a, b) =>
+                    (a.order || 0) -
+                    (b.order || 0)
+                )
+                .map(
+                  (
+                    phase,
+                    phaseIndex
+                  ) => {
 
-                  const phaseCompleted =
-                    phase.tasks?.length > 0 &&
-                    phase.tasks.every(
-                      (task) => task.completed
-                    );
+                    const phaseCompleted =
+                      phase.tasks?.length > 0 &&
+                      phase.tasks.every(
+                        (task) =>
+                          task.completed
+                      );
 
-                  const completedCount =
-                    phase.tasks?.filter(
-                      (task) => task.completed
-                    ).length || 0;
+                    const completedCount =
+                      phase.tasks?.filter(
+                        (task) =>
+                          task.completed
+                      ).length || 0;
 
-                  const isExpanded =
-                    expandedPhases[phase._id];
+                    const isExpanded =
+                      expandedPhases[
+                        phase._id
+                      ];
 
-                  return (
-                    <motion.div
-                      key={phase._id}
-                      initial={{
-                        opacity: 0,
-                        y: 20,
-                      }}
-                      whileInView={{
-                        opacity: 1,
-                        y: 0,
-                      }}
-                      viewport={{
-                        once: true,
-                      }}
-                      transition={{
-                        delay: phaseIndex * 0.05,
-                      }}
-                      className={`overflow-hidden rounded-3xl border ${
-                        phaseCompleted
-                          ? "border-emerald-400/20"
-                          : "border-white/10"
-                      } bg-[#101423]`}
-                    >
-
-                      {/* PHASE HEADER */}
-
-                      <button
-                        onClick={() =>
-                          togglePhase(phase._id)
-                        }
-                        className="flex w-full items-center gap-4 p-5 text-left transition hover:bg-white/[0.025] sm:p-6"
+                    return (
+                      <motion.div
+                        key={phase._id}
+                        initial={{
+                          opacity: 0,
+                          y: 15,
+                        }}
+                        whileInView={{
+                          opacity: 1,
+                          y: 0,
+                        }}
+                        viewport={{
+                          once: true,
+                        }}
+                        transition={{
+                          delay:
+                            phaseIndex *
+                            0.04,
+                        }}
+                        className={`overflow-hidden rounded-2xl border ${
+                          phaseCompleted
+                            ? "border-emerald-400/20"
+                            : "border-white/10"
+                        } bg-[#101423]`}
                       >
 
-                        <div
-                          className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl ${
-                            phaseCompleted
-                              ? "bg-emerald-400/10"
-                              : "bg-violet-400/10"
-                          }`}
+                        {/* PHASE HEADER */}
+
+                        <button
+                          type="button"
+                          onClick={() =>
+                            togglePhase(
+                              phase._id
+                            )
+                          }
+                          className="flex w-full items-center gap-3 p-4 text-left transition hover:bg-white/[0.025] sm:p-5"
                         >
-                          {phaseCompleted ? (
-                            <CheckCircle2 className="h-6 w-6 text-emerald-300" />
-                          ) : (
-                            <span className="text-lg font-bold text-violet-300">
-                              {phaseIndex + 1}
-                            </span>
-                          )}
-                        </div>
 
-                        <div className="min-w-0 flex-1">
+                          <div
+                            className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl ${
+                              phaseCompleted
+                                ? "bg-emerald-400/10"
+                                : "bg-violet-400/10"
+                            }`}
+                          >
+                            {phaseCompleted ? (
+                              <CheckCircle2 className="h-5 w-5 text-emerald-300" />
+                            ) : (
+                              <span className="text-base font-bold text-violet-300">
+                                {phaseIndex +
+                                  1}
+                              </span>
+                            )}
+                          </div>
 
-                          <div className="flex flex-wrap items-center gap-3">
+                          <div className="min-w-0 flex-1">
 
-                            <h3 className="font-semibold text-white">
-                              {phase.title}
-                            </h3>
+                            <div className="flex flex-wrap items-center gap-2.5">
 
-                            <span className="rounded-full border border-white/10 bg-white/[0.03] px-2.5 py-1 text-[11px] text-slate-500">
-                              {completedCount}/
-                              {phase.tasks?.length || 0}{" "}
-                              tasks
-                            </span>
+                              <h3 className="font-semibold text-white">
+                                {phase.title}
+                              </h3>
+
+                              <span className="rounded-full border border-white/10 bg-white/[0.03] px-2.5 py-1 text-[11px] text-slate-500">
+                                {
+                                  completedCount
+                                }
+                                /
+                                {
+                                  phase
+                                    .tasks
+                                    ?.length ||
+                                  0
+                                }{" "}
+                                tasks
+                              </span>
+
+                            </div>
+
+                            {phase.description && (
+                              <p className="mt-1 text-sm leading-5 text-slate-500">
+                                {
+                                  phase.description
+                                }
+                              </p>
+                            )}
 
                           </div>
 
-                          {phase.description && (
-                            <p className="mt-1 text-sm leading-6 text-slate-500">
-                              {phase.description}
-                            </p>
-                          )}
+                          <ChevronDown
+                            className={`h-5 w-5 shrink-0 text-slate-500 transition ${
+                              isExpanded
+                                ? "rotate-180"
+                                : ""
+                            }`}
+                          />
 
-                        </div>
+                        </button>
 
-                        <ChevronDown
-                          className={`h-5 w-5 shrink-0 text-slate-500 transition ${
-                            isExpanded
-                              ? "rotate-180"
-                              : ""
-                          }`}
-                        />
+                        {/* TASKS */}
 
-                      </button>
+                        {isExpanded && (
+                          <div className="border-t border-white/10">
 
-                      {/* TASKS */}
+                            {phase.tasks?.length >
+                            0 ? (
+                              <div className="divide-y divide-white/[0.06]">
 
-                      {isExpanded && (
-                        <div className="border-t border-white/10">
+                                {phase.tasks.map(
+                                  (
+                                    task
+                                  ) => {
 
-                          {phase.tasks?.length > 0 ? (
-                            <div className="divide-y divide-white/[0.06]">
+                                    const TaskIcon =
+                                      getTaskIcon(
+                                        task.type
+                                      );
 
-                              {phase.tasks.map(
-                                (task) => {
+                                    const updateKey = `${phase._id}-${task._id}`;
 
-                                  const TaskIcon =
-                                    getTaskIcon(
-                                      task.type
-                                    );
+                                    const isUpdating =
+                                      updatingTask ===
+                                      updateKey;
 
-                                  const updateKey = `${phase._id}-${task._id}`;
-
-                                  const isUpdating =
-                                    updatingTask ===
-                                    updateKey;
-
-                                  return (
-                                    <div
-                                      key={task._id}
-                                      className={`group flex gap-4 p-5 transition sm:p-6 ${
-                                        task.completed
-                                          ? "bg-emerald-400/[0.025]"
-                                          : "hover:bg-white/[0.02]"
-                                      }`}
-                                    >
-
-                                      {/* CHECKBOX */}
-
-                                      <button
-                                        disabled={
-                                          isUpdating
+                                    return (
+                                      <div
+                                        key={
+                                          task._id
                                         }
-                                        onClick={() =>
-                                          handleTaskToggle(
-                                            phase._id,
-                                            task._id,
-                                            !task.completed
-                                          )
-                                        }
-                                        className={`mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border transition ${
+                                        className={`group flex gap-3 p-4 transition sm:p-5 ${
                                           task.completed
-                                            ? "border-emerald-400/40 bg-emerald-400/15 text-emerald-300"
-                                            : "border-white/15 bg-white/[0.03] text-transparent hover:border-violet-400/40"
+                                            ? "bg-emerald-400/[0.025]"
+                                            : "hover:bg-white/[0.02]"
                                         }`}
                                       >
-                                        {isUpdating ? (
-                                          <Loader2 className="h-4 w-4 animate-spin text-violet-300" />
-                                        ) : task.completed ? (
-                                          <Check className="h-4 w-4" />
-                                        ) : null}
-                                      </button>
 
-                                      {/* TASK CONTENT */}
+                                        {/* CHECKBOX */}
 
-                                      <div className="min-w-0 flex-1">
+                                        <button
+                                          type="button"
+                                          disabled={
+                                            isUpdating
+                                          }
+                                          onClick={() =>
+                                            handleTaskToggle(
+                                              phase._id,
+                                              task._id,
+                                              !task.completed
+                                            )
+                                          }
+                                          className={`mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border transition ${
+                                            task.completed
+                                              ? "border-emerald-400/40 bg-emerald-400/15 text-emerald-300"
+                                              : "border-white/15 bg-white/[0.03] text-transparent hover:border-violet-400/40"
+                                          }`}
+                                        >
+                                          {isUpdating ? (
+                                            <Loader2 className="h-4 w-4 animate-spin text-violet-300" />
+                                          ) : task.completed ? (
+                                            <Check className="h-4 w-4" />
+                                          ) : null}
+                                        </button>
 
-                                        <div className="flex flex-wrap items-center gap-3">
+                                        {/* TASK CONTENT */}
 
-                                          <TaskIcon
-                                            className={`h-4 w-4 ${
-                                              task.completed
-                                                ? "text-emerald-300"
-                                                : "text-violet-300"
-                                            }`}
-                                          />
+                                        <div className="min-w-0 flex-1">
 
-                                          <h4
-                                            className={`font-semibold ${
-                                              task.completed
-                                                ? "text-slate-500 line-through"
-                                                : "text-white"
-                                            }`}
-                                          >
-                                            {task.title}
-                                          </h4>
+                                          <div className="flex flex-wrap items-center gap-2.5">
 
-                                          {task.priority && (
-                                            <span
-                                              className={`rounded-full border px-2.5 py-1 text-[10px] font-medium uppercase tracking-wide ${getPriorityStyle(
-                                                task.priority
-                                              )}`}
+                                            <TaskIcon
+                                              className={`h-4 w-4 ${
+                                                task.completed
+                                                  ? "text-emerald-300"
+                                                  : "text-violet-300"
+                                              }`}
+                                            />
+
+                                            <h4
+                                              className={`font-semibold ${
+                                                task.completed
+                                                  ? "text-slate-500 line-through"
+                                                  : "text-white"
+                                              }`}
                                             >
                                               {
-                                                task.priority
+                                                task.title
                                               }
-                                            </span>
+                                            </h4>
+
+                                            {task.priority && (
+                                              <span
+                                                className={`rounded-full border px-2.5 py-1 text-[10px] font-medium uppercase tracking-wide ${getPriorityStyle(
+                                                  task.priority
+                                                )}`}
+                                              >
+                                                {
+                                                  task.priority
+                                                }
+                                              </span>
+                                            )}
+
+                                          </div>
+
+                                          {task.description && (
+                                            <p
+                                              className={`mt-1.5 max-w-4xl text-sm leading-6 ${
+                                                task.completed
+                                                  ? "text-slate-600"
+                                                  : "text-slate-400"
+                                              }`}
+                                            >
+                                              {
+                                                task.description
+                                              }
+                                            </p>
+                                          )}
+
+                                          {task.estimatedTime && (
+                                            <div className="mt-2.5 flex items-center gap-2 text-xs text-slate-500">
+                                              <Clock3 className="h-3.5 w-3.5" />
+
+                                              {
+                                                task.estimatedTime
+                                              }
+                                            </div>
                                           )}
 
                                         </div>
-
-                                        {task.description && (
-                                          <p
-                                            className={`mt-2 max-w-3xl text-sm leading-6 ${
-                                              task.completed
-                                                ? "text-slate-600"
-                                                : "text-slate-400"
-                                            }`}
-                                          >
-                                            {
-                                              task.description
-                                            }
-                                          </p>
-                                        )}
-
-                                        {task.estimatedTime && (
-                                          <div className="mt-3 flex items-center gap-2 text-xs text-slate-500">
-                                            <Clock3 className="h-3.5 w-3.5" />
-
-                                            {
-                                              task.estimatedTime
-                                            }
-                                          </div>
-                                        )}
-
                                       </div>
-                                    </div>
-                                  );
-                                }
-                              )}
+                                    );
+                                  }
+                                )}
 
-                            </div>
-                          ) : (
-                            <div className="p-6 text-sm text-slate-500">
-                              No tasks were generated for this phase.
-                            </div>
-                          )}
+                              </div>
+                            ) : (
+                              <div className="p-5 text-sm text-slate-500">
+                                No tasks were generated for this
+                                phase.
+                              </div>
+                            )}
 
-                        </div>
-                      )}
+                          </div>
+                        )}
 
-                    </motion.div>
-                  );
-                })}
+                      </motion.div>
+                    );
+                  }
+                )}
 
             </div>
           ) : (
-            <div className="rounded-3xl border border-white/10 bg-white/[0.025] p-10 text-center">
+            <div className="rounded-2xl border border-white/10 bg-white/[0.025] p-8 text-center">
 
               <Sparkles className="mx-auto h-10 w-10 text-violet-300" />
 
@@ -791,7 +883,10 @@ export default function Roadmap() {
         ================================================== */}
 
         <motion.section
-          initial={{ opacity: 0, y: 20 }}
+          initial={{
+            opacity: 0,
+            y: 15,
+          }}
           whileInView={{
             opacity: 1,
             y: 0,
@@ -799,14 +894,14 @@ export default function Roadmap() {
           viewport={{
             once: true,
           }}
-          className="mt-12 mb-10 rounded-3xl border border-violet-400/10 bg-violet-400/[0.04] p-6 sm:p-8"
+          className="mt-8 mb-8 rounded-2xl border border-violet-400/10 bg-violet-400/[0.04] p-5 sm:p-6"
         >
 
-          <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
 
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-3">
 
-              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-violet-400/10">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-violet-400/10">
                 <Sparkles className="h-5 w-5 text-violet-300" />
               </div>
 

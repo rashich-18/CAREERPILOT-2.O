@@ -29,17 +29,37 @@ export const testGemini = async () => {
 export const analyzeResume = async (resumeText) => {
   const ai = getAI();
 
+  if (!resumeText || !resumeText.trim()) {
+    throw new Error("Resume text is empty.");
+  }
+
   const prompt = `
-You are CareerPilot AI, an intelligent career coach.
+You are CareerPilot AI, an expert resume analyzer and career coach.
 
-Analyze the following resume carefully.
+Analyze the COMPLETE resume provided below.
 
-RESUME:
+IMPORTANT RULES:
+
+1. Extract information directly from the resume.
+2. Do NOT invent information.
+3. Do NOT assume skills that are not present.
+4. Do NOT unnecessarily summarize or remove useful resume details.
+5. Preserve important technologies, tools, responsibilities, achievements, metrics, project details, education details, and experience.
+6. If a section does not exist, return [] or "".
+7. Return ONLY valid JSON.
+8. Do NOT return markdown.
+9. Do NOT return code fences.
+10. Follow the exact JSON structure below.
+
+========================
+RESUME
+========================
+
 ${resumeText}
 
-Return ONLY valid JSON.
-
-Use exactly this structure:
+========================
+OUTPUT STRUCTURE
+========================
 
 {
   "resumeScore": {
@@ -52,117 +72,369 @@ Use exactly this structure:
     "feedback": ""
   },
 
-
   "summary": "",
 
   "technicalSkills": [],
+
   "softSkills": [],
-  "education": [],
-  "experience": [],
-  "projects": [],
+
+  "education": [
+    {
+      "degree": "",
+      "institution": "",
+      "field": "",
+      "dates": "",
+      "score": ""
+    }
+  ],
+
+  "experience": [
+    {
+      "role": "",
+      "company": "",
+      "duration": "",
+      "responsibilities": []
+    }
+  ],
+
+  "projects": [
+    {
+      "name": "",
+      "technologies": [],
+      "description": ""
+    }
+  ],
+
   "strengths": [],
+
   "weaknesses": [],
+
   "suggestedRoles": [],
+
   "missingSkills": []
 }
 
+========================
+RESUME SCORE
+========================
 
-RESUME SCORE:
+Calculate a realistic score from 0 to 100.
 
-Calculate an overall Resume Score from 0 to 100.
+Evaluate:
 
-Evaluate the resume using these categories:
+contentQuality:
+- clarity
+- relevance
+- professional wording
+- quality of descriptions
+- measurable achievements
 
-- contentQuality: quality, clarity, and relevance of the written content.
-- skills: technical and soft skills demonstrated in the resume.
-- projectsExperience: quality and relevance of projects and work experience.
-- keywords: presence of relevant professional and technical keywords.
-- structure: organization, readability, and completeness of resume sections.
+skills:
+- programming languages
+- frameworks
+- databases
+- tools
+- technical abilities
+- demonstrated soft skills
 
-Give each category a score from 0 to 100.
+projectsExperience:
+- quality of projects
+- relevance
+- technical depth
+- work experience
+- internships
+- responsibilities
+- measurable impact
 
-The overall score should be a balanced evaluation of these categories.
+keywords:
+- technical keywords
+- industry keywords
+- role-specific keywords
+- ATS-friendly terminology
 
-Do not give an inflated score.
+structure:
+- organization
+- readability
+- completeness
+- consistency
+- section structure
 
-Do not assume skills or experience that are not present in the resume.
+Do not inflate scores.
 
-feedback should be one short sentence explaining the overall quality of the resume.
+A resume containing many technologies should NOT automatically receive a high score.
+
+The overall score must represent the balanced quality of the entire resume.
+
+"feedback" must contain ONE concise sentence describing the resume's most important overall improvement.
+
+========================
+SUMMARY
+========================
+
+Create a professional 3-5 sentence summary.
+
+Mention, when available:
+
+- educational background
+- technical background
+- strongest skills
+- important projects
+- work experience
+- career direction
+
+Do not invent information.
+
+========================
+TECHNICAL SKILLS
+========================
+
+Extract ALL technical skills explicitly present in the resume.
+
+Include:
+
+- programming languages
+- frameworks
+- libraries
+- databases
+- APIs
+- developer tools
+- cloud platforms
+- technologies
+- version control
+- development platforms
+
+Return short skill names.
 
 Example:
 
-"resumeScore": {
-  "overall": 78,
-  "contentQuality": 82,
-  "skills": 76,
-  "projectsExperience": 85,
-  "keywords": 70,
-  "structure": 79,
-  "feedback": "A strong resume with good projects, but keyword usage and content clarity can be improved."
-}
-  
-Rules:
+[
+  "C++",
+  "JavaScript",
+  "React",
+  "Node.js",
+  "MongoDB",
+  "Git"
+]
 
-- technicalSkills: technical/programming/tools/framework skills.
-- softSkills: communication, leadership, teamwork, problem-solving, etc.
-- education: include degree, institution, field, and dates when available.
-- experience: return each experience as an object containing:
-  role,
-  company,
-  duration,
-  responsibilities.
+========================
+SOFT SKILLS
+========================
 
-- responsibilities MUST always be an array of short strings.
+Extract soft skills explicitly mentioned or clearly demonstrated.
 
-Example:
+Examples:
+
+[
+  "Leadership",
+  "Teamwork",
+  "Communication",
+  "Problem Solving"
+]
+
+Do not invent soft skills.
+
+========================
+EDUCATION
+========================
+
+Extract EVERY education entry.
+
+Return EXACTLY:
+
 {
-  "role": "Software Developer",
-  "company": "ABC",
-  "duration": "2025-2026",
+  "degree": "",
+  "institution": "",
+  "field": "",
+  "dates": "",
+  "score": ""
+}
+
+Examples of score information:
+
+- CGPA
+- GPA
+- percentage
+- marks
+- grade
+
+If unavailable, use "".
+
+========================
+EXPERIENCE
+========================
+
+Extract EVERY:
+
+- internship
+- job
+- freelance role
+- research position
+- professional experience
+
+Return EXACTLY:
+
+{
+  "role": "",
+  "company": "",
+  "duration": "",
+  "responsibilities": []
+}
+
+IMPORTANT:
+
+responsibilities MUST ALWAYS be an array.
+
+Each responsibility must be a separate string.
+
+Example:
+
+{
+  "role": "Software Developer Intern",
+  "company": "ABC Technologies",
+  "duration": "June 2026 - August 2026",
   "responsibilities": [
     "Developed REST APIs",
-    "Built frontend features",
-    "Worked with MongoDB"
+    "Built React components",
+    "Integrated MongoDB",
+    "Implemented authentication"
   ]
 }
 
-If responsibilities are unavailable, return:
-"responsibilities": []
-- projects: include project name, technologies, and description when available.
-- strengths: identify strengths supported by the resume.
-- weaknesses: identify areas that appear weak or missing.
-- suggestedRoles: suggest realistic career roles based on the resume.
-- missingSkills:
+Do not combine all responsibilities into one string.
 
-Return ONLY the names of skills that the candidate should learn or strengthen.
+========================
+PROJECTS
+========================
 
-Do not include explanations.
+Extract EVERY project.
 
-Do not include reasons.
+Return EXACTLY:
 
-Do not include priority.
+{
+  "name": "",
+  "technologies": [],
+  "description": ""
+}
 
-Do not include sentences.
+The description should preserve important information from the resume.
 
-Each item must be a short skill name.
+Include when available:
+
+- purpose
+- features
+- candidate contribution
+- technical implementation
+- technologies
+- measurable results
+
+========================
+STRENGTHS
+========================
+
+Return 3-7 concise strengths supported by the resume.
+
+Example:
+
+[
+  "Strong frontend development foundation",
+  "Hands-on database experience",
+  "Multiple practical projects"
+]
+
+Do not invent strengths.
+
+========================
+WEAKNESSES
+========================
+
+Identify genuine areas for improvement based on the resume.
+
+Examples:
+
+[
+  "Limited professional experience",
+  "Few measurable achievements",
+  "Limited cloud exposure"
+]
+
+Do not make unsupported claims.
+
+========================
+SUGGESTED ROLES
+========================
+
+Suggest 3-6 realistic career roles based ONLY on the candidate's actual:
+
+- skills
+- education
+- projects
+- experience
+
+Examples:
+
+[
+  "Frontend Developer",
+  "Full Stack Developer",
+  "Software Engineer"
+]
+
+========================
+MISSING SKILLS
+========================
+
+Return ONLY short skill names.
+
+These should be useful skills the candidate should learn or strengthen for realistic career progression.
 
 Good:
+
 [
+  "TypeScript",
   "Docker",
-  "REST APIs",
   "AWS",
   "Unit Testing",
-  "TypeScript"
+  "REST APIs"
 ]
 
 Bad:
+
 [
-  "Learn Docker because it is commonly used in production",
-  "Improve your knowledge of REST APIs",
-  "You should learn AWS"
+  "Learn Docker because it is widely used",
+  "Improve your knowledge of AWS",
+  "You should learn TypeScript"
 ]
-- Do not invent information that is not supported by the resume.
-- If information is unavailable, return an empty array or empty string.
+
+Do NOT include explanations.
+
+Do NOT include reasons.
+
+Do NOT include priorities.
+
+Do NOT include sentences.
+
+========================
+FINAL VALIDATION
+========================
+
+Before returning JSON verify:
+
+- resumeScore exists
+- summary exists
+- technicalSkills is an array
+- softSkills is an array
+- education is an array
+- experience is an array
+- projects is an array
+- strengths is an array
+- weaknesses is an array
+- suggestedRoles is an array
+- missingSkills is an array
+- experience.responsibilities is ALWAYS an array
+- projects.technologies is ALWAYS an array
+- no information has been invented
+- output is valid JSON
+
+RETURN ONLY JSON.
 `;
 
   const response = await ai.models.generateContent({
@@ -170,16 +442,26 @@ Bad:
     contents: prompt,
   });
 
-  const text = response.text.trim();
+  const text = response.text?.trim();
 
-  // Remove markdown code fences if Gemini adds them
+  if (!text) {
+    throw new Error("Gemini returned an empty response.");
+  }
+
   const cleanedText = text
     .replace(/^```json\s*/i, "")
     .replace(/^```\s*/i, "")
     .replace(/\s*```$/i, "")
     .trim();
 
-  return JSON.parse(cleanedText);
+  try {
+    return JSON.parse(cleanedText);
+  } catch (error) {
+    console.error("INVALID GEMINI JSON:");
+    console.error(cleanedText);
+
+    throw new Error("Gemini returned invalid JSON.");
+  }
 };
 
 

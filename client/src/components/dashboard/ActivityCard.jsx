@@ -78,10 +78,10 @@ export default function ActivityCard({ data, loading }) {
           border
           border-white/[0.08]
           bg-[#101522]/90
-          p-4
+          p-3.5
           shadow-[0_20px_60px_rgba(0,0,0,0.12)]
           backdrop-blur-xl
-          sm:p-5
+          sm:p-4
         "
       >
         <div className="animate-pulse">
@@ -356,7 +356,7 @@ export default function ActivityCard({ data, loading }) {
           ACTIVITY LIST
       ===================================================== */}
 
-      <div className="relative z-10 mt-3.5">
+      <div className="relative z-10 mt-2.5">
 
         {activities.length === 0 ? (
 
@@ -386,14 +386,14 @@ export default function ActivityCard({ data, loading }) {
 
           <div className="space-y-0.5">
 
-            {activities.slice(0, 5).map(
+            {activities.slice(0, 4).map(
               (activity, index) => {
 
                 const isLast =
                   index ===
                   Math.min(
                     activities.length,
-                    5
+                    4
                   ) - 1;
 
                 return (

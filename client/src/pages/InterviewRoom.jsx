@@ -545,15 +545,34 @@ export default function InterviewRoom() {
             Interview not found.
           </p>
 
-          <button
-            onClick={() =>
-              navigate("/interview")
-            }
-            className="mt-4 rounded-xl bg-violet-600 px-5 py-2.5 text-sm font-semibold text-white"
-          >
-            Back to AI Interview
-          </button>
+           <motion.button
+          type="button"
+          onClick={() => navigate("/interview")}
+          initial={{
+            opacity: 0,
+            x: -8,
+          }}
+          animate={{
+            opacity: 1,
+            x: 0,
+          }}
+          transition={{
+            duration: 0.35,
+            ease: [0.22, 1, 0.36, 1],
+          }}
+          whileHover={{
+            x: -2,
+          }}
+          whileTap={{
+            scale: 0.97,
+          }}
+          className="mb-8 inline-flex items-center gap-2 rounded-xl border border-white/[0.07] bg-white/[0.035] px-4 py-2.5 text-xs font-medium text-gray-400 transition hover:border-violet-500/30 hover:bg-white/[0.06] hover:text-white"
+        >
+          <ArrowLeft size={16} />
 
+          Back to AI Interview
+        </motion.button>
+        
         </div>
 
       </main>
@@ -600,20 +619,34 @@ export default function InterviewRoom() {
 
         <header className="mb-6 flex items-center justify-between">
 
-          <button
-            onClick={() => {
-              cleanupMedia();
-              navigate("/interview");
-            }}
-            className="group flex items-center gap-2 rounded-xl border border-white/[0.08] bg-white/[0.03] px-4 py-2.5 text-sm text-gray-400 backdrop-blur-xl transition hover:border-white/15 hover:bg-white/[0.06] hover:text-white"
-          >
-            <ArrowLeft
-              size={16}
-              className="transition group-hover:-translate-x-0.5"
-            />
+          <motion.button
+          type="button"
+          onClick={() => {cleanupMedia();
+            navigate("/interview");}}
+          initial={{
+            opacity: 0,
+            x: -8,
+          }}
+          animate={{
+            opacity: 1,
+            x: 0,
+          }}
+          transition={{
+            duration: 0.35,
+            ease: [0.22, 1, 0.36, 1],
+          }}
+          whileHover={{
+            x: -2,
+          }}
+          whileTap={{
+            scale: 0.97,
+          }}
+          className="mb-8 inline-flex items-center gap-2 rounded-xl border border-white/[0.07] bg-white/[0.035] px-4 py-2.5 text-xs font-medium text-gray-400 transition hover:border-violet-500/30 hover:bg-white/[0.06] hover:text-white"
+        >
+          <ArrowLeft size={16} />
 
-            Exit Interview
-          </button>
+          Back to AI Interview
+        </motion.button>
 
           {/* CENTER BRAND */}
 

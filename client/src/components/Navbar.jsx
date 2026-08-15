@@ -1,140 +1,337 @@
-import {  Menu, X } from "lucide-react";
+import { Menu, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 
-
 export default function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
-const [scrolled, setScrolled] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
 
-useEffect(() => {
-  const handleScroll = () => {
-    setScrolled(window.scrollY > 30);
+  useEffect(() => {
+    const handleScroll = () => {
+      setScrolled(window.scrollY > 30);
+    };
+
+    window.addEventListener("scroll", handleScroll);
+
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  // Close mobile menu after navigation
+  const closeMenu = () => {
+    setMenuOpen(false);
   };
-
-  window.addEventListener("scroll", handleScroll);
-
-  return () => window.removeEventListener("scroll", handleScroll);
-}, []);
 
   return (
     <nav
-  className={`fixed top-0 left-0 z-50 w-full transition-all duration-500 ${
-    scrolled ? "py-3" : "py-5"
-  }`}
->
-
+      className={`fixed left-0 top-0 z-50 w-full transition-all duration-500 ${
+        scrolled ? "py-3" : "py-5"
+      }`}
+    >
       <div
-  className={`mx-auto flex max-w-7xl items-center justify-between rounded-2xl px-8 py-4 transition-all duration-500 ${
-    scrolled
-      ? "border border-white/10 bg-[#0B1023]/70 backdrop-blur-2xl shadow-2xl"
-      : "bg-transparent"
-  }`}
->
+        className={`mx-auto flex max-w-7xl items-center justify-between px-5 transition-all duration-500 sm:px-6 lg:px-8 ${
+          scrolled
+            ? "rounded-2xl border border-white/10 bg-[#0B1023]/70 py-3 backdrop-blur-2xl shadow-2xl"
+            : "py-3"
+        }`}
+      >
+        {/* =====================================================
+            LOGO
+        ===================================================== */}
 
-        {/* Logo */}
-
-        <div className="flex items-center gap-2">
-
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-r from-violet-600 to-cyan-500 font-bold text-white">
-
+        <Link
+          to="/"
+          onClick={closeMenu}
+          className="flex items-center gap-2.5"
+        >
+          <div
+            className="
+              flex
+              h-9
+              w-9
+              shrink-0
+              items-center
+              justify-center
+              rounded-xl
+              bg-gradient-to-r
+              from-violet-600
+              to-cyan-500
+              text-sm
+              font-bold
+              text-white
+              shadow-lg
+              shadow-violet-500/10
+              sm:h-10
+              sm:w-10
+              sm:text-base
+            "
+          >
             C
-
           </div>
 
           <div>
-
-            <h1 className="text-xl font-bold text-white">
+            <h1 className="text-base font-bold text-white sm:text-xl">
               CareerPilot
             </h1>
 
-            <p className="text-xs text-gray-400">
+            <p className="hidden text-xs text-gray-400 sm:block">
               AI Career Coach
             </p>
-
           </div>
+        </Link>
 
-        </div>
+        {/* =====================================================
+            DESKTOP MENU
+        ===================================================== */}
 
-        {/* Desktop Menu */}
-
-        <div className="hidden items-center gap-8 text-gray-300 lg:flex">
-
-          <a href="#" className="transition hover:text-white">
+        <div className="hidden items-center gap-8 text-sm text-gray-300 lg:flex">
+          <a
+            href="#"
+            className="transition hover:text-white"
+          >
             Home
           </a>
 
-          <a href="#features" className="transition hover:text-white">
+          <a
+            href="#features"
+            className="transition hover:text-white"
+          >
             Features
           </a>
 
-          <a href="#how-it-works" className="transition hover:text-white">
+          <a
+            href="#how-it-works"
+            className="transition hover:text-white"
+          >
             How It Works
           </a>
 
-          <a href="#about" className="transition hover:text-white">
+          <a
+            href="#about"
+            className="transition hover:text-white"
+          >
             About
           </a>
-
         </div>
 
-        {/* Right Side */}
+        {/* =====================================================
+            DESKTOP ACTIONS
+        ===================================================== */}
 
-        <div className="hidden items-center gap-4 lg:flex">
+        <div className="hidden items-center gap-5 lg:flex">
+          <Link to="/login">
+            <button className="text-sm text-gray-300 transition hover:text-white">
+              Login
+            </button>
+          </Link>
 
-        <Link to="/login">
-          <button className="text-gray-300 transition hover:text-white">
-            Login
-          </button>
-        </Link>
-
-        <Link to="/signup">  <button className="rounded-xl bg-gradient-to-r from-violet-600 to-cyan-500 px-5 py-2 font-medium text-white transition hover:scale-105">
-
-            Get Started
-          </button>
-        </Link>
-
+          <Link to="/signup">
+            <button
+              className="
+                rounded-xl
+                bg-gradient-to-r
+                from-violet-600
+                to-cyan-500
+                px-5
+                py-2.5
+                text-sm
+                font-semibold
+                text-white
+                transition-all
+                duration-300
+                hover:scale-105
+                hover:shadow-lg
+                hover:shadow-violet-500/20
+              "
+            >
+              Get Started
+            </button>
+          </Link>
         </div>
 
-        {/* Mobile Button */}
+        {/* =====================================================
+            MOBILE MENU BUTTON
+        ===================================================== */}
 
         <button
-          className="text-white lg:hidden"
+          type="button"
+          aria-label="Toggle menu"
+          className="
+            flex
+            h-10
+            w-10
+            items-center
+            justify-center
+            rounded-xl
+            border
+            border-white/[0.08]
+            bg-white/[0.03]
+            text-white
+            transition
+            hover:bg-white/[0.07]
+            lg:hidden
+          "
           onClick={() => setMenuOpen(!menuOpen)}
         >
-          {menuOpen ? <X size={28} /> : <Menu size={28} />}
+          {menuOpen ? <X size={21} /> : <Menu size={21} />}
         </button>
-
       </div>
 
-      {/* Mobile Menu */}
+      {/* =====================================================
+          MOBILE MENU
+      ===================================================== */}
 
       {menuOpen && (
+        <div
+          className="
+            mx-4
+            mt-2
+            overflow-hidden
+            rounded-2xl
+            border
+            border-white/[0.08]
+            bg-[#0B1023]/95
+            p-4
+            shadow-2xl
+            backdrop-blur-2xl
+            lg:hidden
+          "
+        >
+          {/* Navigation */}
 
-        <div className="mx-5 mt-3 rounded-2xl border border-white/10 bg-[#111827]/90 p-6 backdrop-blur-xl lg:hidden">
+          <div className="flex flex-col">
+            <a
+              href="#"
+              onClick={closeMenu}
+              className="
+                rounded-xl
+                px-3
+                py-3
+                text-sm
+                text-gray-300
+                transition
+                hover:bg-white/[0.04]
+                hover:text-white
+              "
+            >
+              Home
+            </a>
 
-          <div className="flex flex-col gap-5 text-white">
+            <a
+              href="#features"
+              onClick={closeMenu}
+              className="
+                rounded-xl
+                px-3
+                py-3
+                text-sm
+                text-gray-300
+                transition
+                hover:bg-white/[0.04]
+                hover:text-white
+              "
+            >
+              Features
+            </a>
 
-            <a href="#"className="block hover:text-violet-400 transition">Home</a>
+            <a
+              href="#how-it-works"
+              onClick={closeMenu}
+              className="
+                rounded-xl
+                px-3
+                py-3
+                text-sm
+                text-gray-300
+                transition
+                hover:bg-white/[0.04]
+                hover:text-white
+              "
+            >
+              How It Works
+            </a>
 
-            <a href="#features"className="block hover:text-violet-400 transition">Features</a>
-
-            <a href="#how-it-works"className="block hover:text-violet-400 transition">How It Works</a>
-
-            <a href="#about" className="block hover:text-violet-400 transition">About</a>
-
-            <Link to="/signup"><button className="mt-4 rounded-xl bg-gradient-to-r from-violet-600 to-cyan-500 py-3 ">
-
-              Get Started
-
-            </button></Link>
-
+            <a
+              href="#about"
+              onClick={closeMenu}
+              className="
+                rounded-xl
+                px-3
+                py-3
+                text-sm
+                text-gray-300
+                transition
+                hover:bg-white/[0.04]
+                hover:text-white
+              "
+            >
+              About
+            </a>
           </div>
 
+          {/* Divider */}
+
+          <div className="my-3 h-px bg-white/[0.07]" />
+
+          {/* =================================================
+              MOBILE AUTH BUTTONS
+          ================================================= */}
+
+          <div className="grid grid-cols-2 gap-2.5">
+            <Link
+              to="/login"
+              onClick={closeMenu}
+              className="w-full"
+            >
+              <button
+                className="
+                  w-full
+                  rounded-xl
+                  border
+                  border-white/[0.08]
+                  bg-white/[0.03]
+                  px-4
+                  py-3
+                  text-sm
+                  font-medium
+                  text-gray-300
+                  transition
+                  hover:bg-white/[0.07]
+                  hover:text-white
+                "
+              >
+                Login
+              </button>
+            </Link>
+
+            <Link
+              to="/signup"
+              onClick={closeMenu}
+              className="w-full"
+            >
+              <button
+                className="
+                  w-full
+                  rounded-xl
+                  bg-gradient-to-r
+                  from-violet-600
+                  to-cyan-500
+                  px-4
+                  py-3
+                  text-sm
+                  font-semibold
+                  text-white
+                  transition-all
+                  duration-300
+                  hover:shadow-lg
+                  hover:shadow-violet-500/20
+                "
+              >
+                Get Started
+              </button>
+            </Link>
+          </div>
         </div>
-
       )}
-
     </nav>
   );
 }

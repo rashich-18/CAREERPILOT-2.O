@@ -1,4 +1,5 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { motion } from "framer-motion";
 import { useLocation, useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 
@@ -13,11 +14,14 @@ import {
   Briefcase,
   FolderGit2,
   CheckCircle2,
-  AlertTriangle,
   Target,
   Lightbulb,
-  Gauge,
   TrendingUp,
+  ShieldCheck,
+  Activity,
+  CircleDot,
+  ChevronRight,
+  Zap,
 } from "lucide-react";
 
 import { getResumeById } from "../api/resumeApi";
@@ -31,9 +35,9 @@ export default function Analysis() {
   const [resume, setResume] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // ==========================================
-  // LOAD SAVED RESUME ANALYSIS
-  // ==========================================
+  // =========================================================
+  // LOAD RESUME
+  // =========================================================
 
   useEffect(() => {
     const loadAnalysis = async () => {
@@ -71,28 +75,196 @@ export default function Analysis() {
     loadAnalysis();
   }, [resumeId, navigate]);
 
-  // ==========================================
-  // LOADING SCREEN
-  // ==========================================
+  // =========================================================
+  // SAFE DATA
+  // =========================================================
+
+  const analysis = resume?.analysis || {};
+
+  const resumeScore = Number(
+    analysis.resumeScore?.overall || 0
+  );
+
+  const technicalSkills = Array.isArray(
+    analysis.technicalSkills
+  )
+    ? analysis.technicalSkills
+    : [];
+
+  const softSkills = Array.isArray(analysis.softSkills)
+    ? analysis.softSkills
+    : [];
+
+  const strengths = Array.isArray(analysis.strengths)
+    ? analysis.strengths
+    : [];
+
+  const weaknesses = Array.isArray(analysis.weaknesses)
+    ? analysis.weaknesses
+    : [];
+
+  const missingSkills = Array.isArray(
+    analysis.missingSkills
+  )
+    ? analysis.missingSkills
+    : [];
+
+  const suggestedRoles = Array.isArray(
+    analysis.suggestedRoles
+  )
+    ? analysis.suggestedRoles
+    : [];
+
+  const education = Array.isArray(analysis.education)
+    ? analysis.education
+    : [];
+
+  const experience = Array.isArray(analysis.experience)
+    ? analysis.experience
+    : [];
+
+  const projects = Array.isArray(analysis.projects)
+    ? analysis.projects
+    : [];
+
+  // =========================================================
+  // PERFORMANCE
+  // =========================================================
+
+  const performance = useMemo(() => {
+    if (resumeScore >= 85) {
+      return {
+        label: "Excellent",
+        color: "text-emerald-300",
+        bg: "bg-emerald-500/10",
+        border: "border-emerald-500/20",
+        description:
+          "Your resume demonstrates strong overall quality, relevant skills, and a solid professional profile.",
+      };
+    }
+
+    if (resumeScore >= 70) {
+      return {
+        label: "Strong",
+        color: "text-violet-300",
+        bg: "bg-violet-500/10",
+        border: "border-violet-500/20",
+        description:
+          "Your resume has a solid foundation. A few focused improvements can make it significantly stronger.",
+      };
+    }
+
+    if (resumeScore >= 50) {
+      return {
+        label: "Developing",
+        color: "text-amber-300",
+        bg: "bg-amber-500/10",
+        border: "border-amber-500/20",
+        description:
+          "Your resume has potential, but several areas need improvement to make your profile more competitive.",
+      };
+    }
+
+    return {
+      label: "Needs Improvement",
+      color: "text-red-300",
+      bg: "bg-red-500/10",
+      border: "border-red-500/20",
+      description:
+        "Use this analysis as your starting point and focus on improving the key areas identified below.",
+    };
+  }, [resumeScore]);
+
+  // =========================================================
+  // SCORE BREAKDOWN
+  // =========================================================
+
+  const scoreBreakdown = useMemo(
+    () => [
+      {
+        label: "Content Quality",
+        value: Number(
+          analysis.resumeScore?.contentQuality || 0
+        ),
+      },
+      {
+        label: "Skills",
+        value: Number(
+          analysis.resumeScore?.skills || 0
+        ),
+      },
+      {
+        label: "Projects & Experience",
+        value: Number(
+          analysis.resumeScore?.projectsExperience || 0
+        ),
+      },
+      {
+        label: "Keywords",
+        value: Number(
+          analysis.resumeScore?.keywords || 0
+        ),
+      },
+      {
+        label: "Structure",
+        value: Number(
+          analysis.resumeScore?.structure || 0
+        ),
+      },
+    ],
+    [analysis.resumeScore]
+  );
+
+  // =========================================================
+  // QUICK STATS
+  // =========================================================
+
+  const quickStats = useMemo(
+    () => [
+      {
+        icon: <Code2 size={17} />,
+        value: technicalSkills.length,
+        label: "Technical Skills",
+      },
+      {
+        icon: <ShieldCheck size={17} />,
+        value: strengths.length,
+        label: "Strengths",
+      },
+      {
+        icon: <Target size={17} />,
+        value: missingSkills.length,
+        label: "Skills to Develop",
+      },
+      {
+        icon: <Briefcase size={17} />,
+        value: suggestedRoles.length,
+        label: "Suggested Roles",
+      },
+    ],
+    [
+      technicalSkills.length,
+      strengths.length,
+      missingSkills.length,
+      suggestedRoles.length,
+    ]
+  );
+
+  // =========================================================
+  // LOADING
+  // =========================================================
 
   if (loading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-[#070712] text-white">
-        <div className="text-center">
+      <main className="flex min-h-screen w-full items-center justify-center bg-[#05060D] px-4 text-white">
+        <div className="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/[0.03] px-6 py-4 text-sm text-gray-400 backdrop-blur-xl">
           <Loader2
-            size={45}
-            className="mx-auto animate-spin text-violet-400"
+            size={18}
+            className="animate-spin text-violet-400"
           />
-
-          <p className="mt-5 text-lg text-gray-300">
-            Loading your AI analysis...
-          </p>
-
-          <p className="mt-2 text-sm text-gray-500">
-            Fetching your saved CareerPilot analysis
-          </p>
+          Loading your AI resume analysis...
         </div>
-      </div>
+      </main>
     );
   }
 
@@ -100,815 +272,1583 @@ export default function Analysis() {
     return null;
   }
 
-  const analysis = resume.analysis || {};
+  return (
+    <main className="relative min-h-screen w-full overflow-x-hidden bg-[#05060D] px-3 py-5 text-white sm:px-5 sm:py-6 lg:px-7 xl:px-10">
 
-  // ==========================================
-  // REUSABLE LIST COMPONENT
-  // ==========================================
+      {/* =====================================================
+          AMBIENT BACKGROUND
+      ===================================================== */}
 
-  const ListCard = ({
-    items,
-    icon: Icon,
-    title,
-    iconClass,
-  }) => {
-    if (!items || items.length === 0) return null;
+      <div className="pointer-events-none fixed inset-0 -z-0 overflow-hidden">
+        <div className="absolute -left-40 -top-40 h-[500px] w-[500px] rounded-full bg-violet-600/[0.08] blur-[120px]" />
 
-    return (
-      <section className="rounded-3xl border border-white/10 bg-white/5 p-7 backdrop-blur-xl">
+        <div className="absolute right-[-150px] top-[25%] h-[450px] w-[450px] rounded-full bg-cyan-500/[0.045] blur-[120px]" />
 
-        {/* Header */}
+        <div className="absolute bottom-[-200px] left-[35%] h-[500px] w-[500px] rounded-full bg-violet-500/[0.04] blur-[130px]" />
+      </div>
 
-        <div className="mb-6 flex items-center gap-3">
+      {/* =====================================================
+          FULL WIDTH CONTENT
+      ===================================================== */}
 
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/5">
-            <Icon
-              size={21}
-              className={iconClass}
+      <div className="relative z-10 mx-auto w-full max-w-[1600px]">
+
+        {/* =====================================================
+            HEADER
+        ===================================================== */}
+
+        <header className="mb-6 flex w-full flex-col gap-4 sm:mb-8 sm:flex-row sm:items-center sm:justify-between">
+
+          <motion.button
+            type="button"
+            onClick={() => navigate("/upload")}
+            initial={{
+              opacity: 0,
+              x: -8,
+            }}
+            animate={{
+              opacity: 1,
+              x: 0,
+            }}
+            transition={{
+              duration: 0.35,
+            }}
+            whileHover={{
+              x: -2,
+            }}
+            whileTap={{
+              scale: 0.97,
+            }}
+            className="inline-flex w-fit items-center gap-2 rounded-xl border border-white/[0.07] bg-white/[0.035] px-4 py-2.5 text-xs font-medium text-gray-400 transition hover:border-violet-500/30 hover:bg-white/[0.06] hover:text-white"
+          >
+            <ArrowLeft size={16} />
+            Back to Resume Upload
+          </motion.button>
+
+          <div className="flex items-center gap-3">
+
+            <div className="hidden h-10 w-10 items-center justify-center rounded-xl border border-violet-500/20 bg-violet-500/10 text-violet-300 sm:flex">
+              <Sparkles size={18} />
+            </div>
+
+            <div className="text-left sm:text-right">
+
+              <p className="text-sm font-semibold text-white">
+                AI Resume Analysis
+              </p>
+
+              <div className="mt-1 flex items-center gap-2 text-xs text-gray-600 sm:justify-end">
+                <FileText size={12} />
+
+                <span className="max-w-[260px] truncate">
+                  {resume.fileName || "Resume"}
+                </span>
+              </div>
+
+            </div>
+          </div>
+        </header>
+
+        {/* =====================================================
+            HERO
+        ===================================================== */}
+
+        <motion.section
+          initial={{
+            opacity: 0,
+            y: 20,
+          }}
+          animate={{
+            opacity: 1,
+            y: 0,
+          }}
+          className="relative mb-6 w-full overflow-hidden rounded-[1.75rem] border border-white/[0.08] bg-white/[0.025] backdrop-blur-2xl sm:rounded-[2rem]"
+        >
+
+          {/* GRID */}
+
+          <div
+            className="pointer-events-none absolute inset-0 opacity-[0.035]"
+            style={{
+              backgroundImage:
+                "linear-gradient(rgba(255,255,255,.8) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.8) 1px, transparent 1px)",
+              backgroundSize: "45px 45px",
+            }}
+          />
+
+          <div className="pointer-events-none absolute -right-20 -top-20 h-72 w-72 rounded-full bg-violet-600/[0.08] blur-3xl" />
+
+          <div className="relative grid w-full gap-8 p-5 sm:p-8 lg:grid-cols-[minmax(0,1fr)_360px] lg:items-center lg:p-10 xl:p-12">
+
+            {/* LEFT */}
+
+            <div className="min-w-0">
+
+              <div className="mb-5 flex flex-wrap items-center gap-2">
+
+                <span className="flex items-center gap-2 rounded-full border border-violet-500/20 bg-violet-500/10 px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.18em] text-violet-300">
+                  <Sparkles size={12} />
+                  AI Analysis Complete
+                </span>
+
+                {resume.isCurrent && (
+                  <span className="flex items-center gap-1 rounded-full border border-emerald-500/20 bg-emerald-500/10 px-3 py-1.5 text-[10px] font-semibold uppercase tracking-wider text-emerald-300">
+                    <CheckCircle2 size={11} />
+                    Current
+                  </span>
+                )}
+
+              </div>
+
+              <h1 className="text-3xl font-semibold tracking-tight text-white sm:text-4xl lg:text-5xl xl:text-6xl">
+
+                Resume{" "}
+
+                <span className="text-violet-400">
+                  Performance
+                </span>
+
+              </h1>
+
+              <p className="mt-5 max-w-3xl text-sm leading-7 text-gray-500 sm:text-base">
+                CareerPilot AI analyzed your resume across
+                content quality, skills, experience, projects,
+                structure, and career relevance.
+              </p>
+
+              {/* META */}
+
+              <div className="mt-7 flex flex-wrap gap-2">
+
+                <MetaPill
+                  icon={<FileText size={12} />}
+                  text={resume.fileName || "Resume"}
+                />
+
+                <MetaPill
+                  icon={<Activity size={12} />}
+                  text={`${technicalSkills.length} technical skills`}
+                />
+
+                <MetaPill
+                  icon={<Target size={12} />}
+                  text={`${suggestedRoles.length} suggested roles`}
+                />
+
+              </div>
+
+            </div>
+
+            {/* SCORE */}
+
+            <div className="flex justify-center lg:justify-end">
+              <ResumeScoreOrb
+                score={resumeScore}
+                label={performance.label}
+              />
+            </div>
+
+          </div>
+        </motion.section>
+
+        {/* =====================================================
+            AI VERDICT
+        ===================================================== */}
+
+        <motion.section
+          initial={{
+            opacity: 0,
+            y: 15,
+          }}
+          animate={{
+            opacity: 1,
+            y: 0,
+          }}
+          transition={{
+            delay: 0.08,
+          }}
+          className={`relative mb-6 w-full overflow-hidden rounded-[1.5rem] border ${performance.border} ${performance.bg} p-5 sm:rounded-[1.75rem] sm:p-7`}
+        >
+
+          <div className="absolute right-0 top-0 h-40 w-40 rounded-full bg-violet-500/[0.05] blur-3xl" />
+
+          <div className="relative flex flex-col gap-5 sm:flex-row">
+
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-white/[0.08] bg-black/20 text-violet-300">
+              <Zap size={20} />
+            </div>
+
+            <div className="min-w-0 flex-1">
+
+              <div className="flex flex-wrap items-center gap-3">
+
+                <span className="text-[10px] font-semibold uppercase tracking-[0.2em] text-gray-500">
+                  CareerPilot AI Verdict
+                </span>
+
+                <span
+                  className={`rounded-full border ${performance.border} ${performance.bg} px-3 py-1 text-[10px] font-bold uppercase tracking-wider ${performance.color}`}
+                >
+                  {performance.label}
+                </span>
+
+              </div>
+
+              <p className="mt-3 max-w-5xl text-sm leading-7 text-gray-300">
+                {analysis.resumeScore?.feedback ||
+                  performance.description}
+              </p>
+
+            </div>
+          </div>
+        </motion.section>
+
+        {/* =====================================================
+            QUICK STATS
+        ===================================================== */}
+
+        <section className="mb-7 w-full">
+
+          <SectionTitle
+            eyebrow="Profile Snapshot"
+            title="Your resume at a glance"
+            description="A quick overview of the signals CareerPilot found in your resume."
+          />
+
+          <div className="grid w-full grid-cols-2 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+
+            {quickStats.map((stat, index) => (
+              <StatBox
+                key={stat.label}
+                icon={stat.icon}
+                value={stat.value}
+                label={stat.label}
+                delay={index * 0.05}
+              />
+            ))}
+
+          </div>
+        </section>
+
+        {/* =====================================================
+            SUMMARY + SCORE
+        ===================================================== */}
+
+        <div className="mb-7 grid w-full gap-5 lg:grid-cols-[minmax(0,1.5fr)_minmax(320px,0.5fr)]">
+
+          {/* SUMMARY */}
+
+          {analysis.summary && (
+            <motion.section
+              initial={{
+                opacity: 0,
+                y: 15,
+              }}
+              animate={{
+                opacity: 1,
+                y: 0,
+              }}
+              transition={{
+                delay: 0.15,
+              }}
+              className="min-w-0 rounded-[1.75rem] border border-white/[0.08] bg-white/[0.025] p-5 backdrop-blur-xl sm:p-8"
+            >
+
+              <div className="mb-6 flex items-center gap-4">
+
+                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-cyan-500/15 bg-cyan-500/10 text-cyan-300">
+                  <Sparkles size={19} />
+                </div>
+
+                <div>
+                  <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-cyan-300">
+                    AI Analysis
+                  </p>
+
+                  <h2 className="mt-1 font-semibold text-white">
+                    Executive Summary
+                  </h2>
+                </div>
+
+              </div>
+
+              <div className="relative overflow-hidden rounded-2xl border border-white/[0.06] bg-black/20 p-5 sm:p-6">
+
+                <div className="absolute left-0 top-0 h-full w-[2px] bg-gradient-to-b from-violet-500 via-cyan-400 to-transparent" />
+
+                <p className="text-sm leading-8 text-gray-400">
+                  {analysis.summary}
+                </p>
+
+              </div>
+            </motion.section>
+          )}
+
+          {/* SCORE BREAKDOWN */}
+
+          <motion.section
+            initial={{
+              opacity: 0,
+              y: 15,
+            }}
+            animate={{
+              opacity: 1,
+              y: 0,
+            }}
+            transition={{
+              delay: 0.18,
+            }}
+            className="min-w-0 rounded-[1.75rem] border border-white/[0.08] bg-white/[0.025] p-5 backdrop-blur-xl sm:p-7"
+          >
+
+            <div className="mb-6 flex items-center gap-4">
+
+              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-violet-500/15 bg-violet-500/10 text-violet-300">
+                <TrendingUp size={19} />
+              </div>
+
+              <div>
+                <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-violet-300">
+                  Score Details
+                </p>
+
+                <h2 className="mt-1 font-semibold text-white">
+                  Resume Breakdown
+                </h2>
+              </div>
+
+            </div>
+
+            <div className="space-y-4">
+
+              {scoreBreakdown.map((item, index) => (
+                <ScoreBar
+                  key={item.label}
+                  label={item.label}
+                  value={item.value}
+                  delay={index * 0.08}
+                />
+              ))}
+
+            </div>
+          </motion.section>
+        </div>
+
+        {/* =====================================================
+            SKILLS
+        ===================================================== */}
+
+        {(technicalSkills.length > 0 ||
+          softSkills.length > 0) && (
+          <section className="mb-7 w-full">
+
+            <SectionTitle
+              eyebrow="Skill Profile"
+              title="What you bring to the table"
+              description="Skills identified from your resume by CareerPilot AI."
             />
+
+            <div className="grid w-full gap-5 lg:grid-cols-2">
+
+              {technicalSkills.length > 0 && (
+                <SkillPanel
+                  icon={<Code2 size={19} />}
+                  title="Technical Skills"
+                  subtitle="Tools, technologies & technical knowledge"
+                  skills={technicalSkills}
+                  type="technical"
+                />
+              )}
+
+              {softSkills.length > 0 && (
+                <SkillPanel
+                  icon={<Users size={19} />}
+                  title="Soft Skills"
+                  subtitle="Communication, collaboration & professional traits"
+                  skills={softSkills}
+                  type="soft"
+                />
+              )}
+
+            </div>
+          </section>
+        )}
+
+        {/* =====================================================
+            STRENGTHS + WEAKNESSES
+        ===================================================== */}
+
+        <section className="mb-7 w-full">
+
+          <SectionTitle
+            eyebrow="AI Insights"
+            title="Your strongest signals"
+            description="What your resume communicates well and where you can improve."
+          />
+
+          <div className="grid w-full gap-5 lg:grid-cols-2">
+
+            <InsightPanel
+              type="strength"
+              title="Strength Signals"
+              subtitle="What your resume does well"
+              icon={<ShieldCheck size={19} />}
+              items={strengths}
+            />
+
+            <InsightPanel
+              type="weakness"
+              title="Growth Signals"
+              subtitle="Where your resume can improve"
+              icon={<Target size={19} />}
+              items={weaknesses}
+            />
+
+          </div>
+        </section>
+
+        {/* =====================================================
+            MISSING SKILLS
+        ===================================================== */}
+
+        {missingSkills.length > 0 && (
+          <motion.section
+            initial={{
+              opacity: 0,
+              y: 15,
+            }}
+            animate={{
+              opacity: 1,
+              y: 0,
+            }}
+            className="relative mb-7 w-full overflow-hidden rounded-[1.75rem] border border-orange-500/15 bg-orange-500/[0.035] backdrop-blur-xl sm:rounded-[2rem]"
+          >
+
+            <div className="absolute right-[-80px] top-[-80px] h-64 w-64 rounded-full bg-orange-500/[0.05] blur-3xl" />
+
+            <div className="relative border-b border-white/[0.06] p-5 sm:p-8">
+
+              <div className="flex items-center gap-4">
+
+                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-orange-500/15 bg-orange-500/10 text-orange-300">
+                  <Lightbulb size={19} />
+                </div>
+
+                <div className="min-w-0">
+
+                  <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-orange-300">
+                    Growth Opportunities
+                  </p>
+
+                  <h2 className="mt-1 font-semibold text-white">
+                    Skills You Should Develop
+                  </h2>
+
+                  <p className="mt-1 text-xs text-gray-600">
+                    Recommended based on your current profile.
+                  </p>
+
+                </div>
+              </div>
+            </div>
+
+            <div className="relative flex flex-wrap gap-3 p-5 sm:p-8">
+
+              {missingSkills.map((skill, index) => (
+                <motion.div
+                  key={index}
+                  whileHover={{
+                    y: -2,
+                  }}
+                  className="max-w-full rounded-xl border border-orange-500/20 bg-orange-500/10 px-4 py-3 text-sm text-orange-300 transition hover:bg-orange-500/15"
+                >
+                  {typeof skill === "string"
+                    ? skill
+                    : JSON.stringify(skill)}
+                </motion.div>
+              ))}
+
+            </div>
+          </motion.section>
+        )}
+
+        {/* =====================================================
+            SUGGESTED ROLES
+        ===================================================== */}
+
+        {suggestedRoles.length > 0 && (
+          <motion.section
+            initial={{
+              opacity: 0,
+              y: 15,
+            }}
+            animate={{
+              opacity: 1,
+              y: 0,
+            }}
+            transition={{
+              delay: 0.1,
+            }}
+            className="relative mb-7 w-full overflow-hidden rounded-[1.75rem] border border-white/[0.08] bg-white/[0.025] backdrop-blur-xl sm:rounded-[2rem]"
+          >
+
+            <div className="absolute right-[-80px] top-[-80px] h-64 w-64 rounded-full bg-violet-500/[0.06] blur-3xl" />
+
+            <div className="relative border-b border-white/[0.06] p-5 sm:p-8">
+
+              <div className="flex items-center gap-4">
+
+                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-violet-500/15 bg-violet-500/10 text-violet-300">
+                  <Target size={19} />
+                </div>
+
+                <div>
+                  <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-violet-300">
+                    Career Direction
+                  </p>
+
+                  <h2 className="mt-1 font-semibold text-white">
+                    Suggested Career Roles
+                  </h2>
+
+                  <p className="mt-1 text-xs text-gray-600">
+                    Roles that align with your current resume.
+                  </p>
+                </div>
+
+              </div>
+            </div>
+
+            <div className="relative grid gap-3 p-5 sm:grid-cols-2 sm:p-8 lg:grid-cols-3 xl:grid-cols-4">
+
+              {suggestedRoles.map((role, index) => (
+                <motion.div
+                  key={index}
+                  whileHover={{
+                    y: -3,
+                  }}
+                  className="group min-w-0 rounded-2xl border border-white/[0.06] bg-black/10 p-5 transition hover:border-violet-500/20 hover:bg-white/[0.02]"
+                >
+
+                  <div className="flex items-center justify-between">
+
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-violet-500/15 bg-violet-500/10 text-violet-300">
+                      <Briefcase size={18} />
+                    </div>
+
+                    <ChevronRight
+                      size={16}
+                      className="text-gray-700 transition group-hover:translate-x-1 group-hover:text-violet-300"
+                    />
+
+                  </div>
+
+                  <h3 className="mt-5 break-words font-medium text-gray-200">
+                    {typeof role === "string"
+                      ? role
+                      : JSON.stringify(role)}
+                  </h3>
+
+                </motion.div>
+              ))}
+            </div>
+          </motion.section>
+        )}
+
+        {/* =====================================================
+            EDUCATION
+        ===================================================== */}
+
+        {education.length > 0 && (
+          <div className="mb-7 w-full">
+
+            <SectionTitle
+              eyebrow="Background"
+              title="Education"
+              description="Academic information detected from your resume."
+            />
+
+            <ListCard
+              items={education}
+              icon={GraduationCap}
+              title="Education"
+              iconClass="text-blue-300"
+            />
+
+          </div>
+        )}
+
+        {/* =====================================================
+            EXPERIENCE
+        ===================================================== */}
+
+        {experience.length > 0 && (
+          <div className="mb-7 w-full">
+
+            <SectionTitle
+              eyebrow="Professional Background"
+              title="Experience"
+              description="Your professional experience identified by CareerPilot AI."
+            />
+
+            <ListCard
+              items={experience}
+              icon={Briefcase}
+              title="Experience"
+              iconClass="text-emerald-300"
+            />
+
+          </div>
+        )}
+
+        {/* =====================================================
+            PROJECTS
+        ===================================================== */}
+
+        {projects.length > 0 && (
+          <div className="mb-7 w-full">
+
+            <SectionTitle
+              eyebrow="Work & Portfolio"
+              title="Projects"
+              description="Projects and technologies detected from your resume."
+            />
+
+            <ListCard
+              items={projects}
+              icon={FolderGit2}
+              title="Projects"
+              iconClass="text-cyan-300"
+            />
+
+          </div>
+        )}
+
+        {/* =====================================================
+            FINAL CTA
+        ===================================================== */}
+
+        <motion.section
+          initial={{
+            opacity: 0,
+            y: 15,
+          }}
+          animate={{
+            opacity: 1,
+            y: 0,
+          }}
+          transition={{
+            delay: 0.2,
+          }}
+          className="relative mb-10 w-full overflow-hidden rounded-[1.75rem] border border-violet-500/15 bg-gradient-to-br from-violet-600/[0.10] via-white/[0.025] to-cyan-500/[0.04] p-5 sm:rounded-[2rem] sm:p-9"
+        >
+
+          <div className="absolute -right-20 -top-20 h-64 w-64 rounded-full bg-violet-500/[0.08] blur-3xl" />
+
+          <div className="relative flex flex-col gap-7 md:flex-row md:items-center md:justify-between">
+
+            <div className="min-w-0">
+
+              <div className="mb-3 flex items-center gap-2 text-violet-300">
+
+                <Sparkles size={15} />
+
+                <span className="text-[10px] font-semibold uppercase tracking-[0.2em]">
+                  Keep improving
+                </span>
+
+              </div>
+
+              <h2 className="text-2xl font-semibold text-white sm:text-3xl">
+                Turn this analysis into progress.
+              </h2>
+
+              <p className="mt-2 max-w-2xl text-sm leading-6 text-gray-500">
+                Use your strengths, improve your gaps, and
+                build a resume that is ready for your target roles.
+              </p>
+
+            </div>
+
+            <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row">
+
+              <button
+                type="button"
+                onClick={() => navigate("/upload")}
+                className="group inline-flex min-h-[48px] w-full items-center justify-center gap-2 rounded-xl bg-violet-600 px-5 py-3.5 text-sm font-semibold text-white shadow-lg shadow-violet-900/20 transition hover:bg-violet-500 sm:w-auto"
+              >
+
+                <RotateIcon />
+
+                Analyze Another Resume
+
+                <ChevronRight
+                  size={16}
+                  className="transition group-hover:translate-x-1"
+                />
+
+              </button>
+
+              <button
+                type="button"
+                onClick={() => navigate("/dashboard")}
+                className="inline-flex min-h-[48px] w-full items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/[0.04] px-5 py-3.5 text-sm font-semibold text-gray-300 transition hover:bg-white/[0.08] hover:text-white sm:w-auto"
+              >
+
+                <Activity size={16} />
+
+                Dashboard
+
+              </button>
+
+            </div>
+
+          </div>
+        </motion.section>
+
+        {/* FOOTER */}
+
+        <div className="mb-5 flex items-center justify-center gap-2 text-center text-xs text-gray-700">
+
+          <Sparkles size={13} />
+
+          Analysis generated by CareerPilot AI
+
+        </div>
+
+      </div>
+    </main>
+  );
+}
+
+
+/* ============================================================
+   SCORE ORB
+============================================================ */
+
+function ResumeScoreOrb({
+  score,
+  label,
+}) {
+  const radius = 76;
+
+  const circumference =
+    2 * Math.PI * radius;
+
+  const safeScore = Math.min(
+    100,
+    Math.max(0, Number(score || 0))
+  );
+
+  const progress =
+    circumference -
+    (safeScore / 100) * circumference;
+
+  return (
+    <div className="relative flex h-[210px] w-[210px] items-center justify-center sm:h-[250px] sm:w-[250px]">
+
+      <div className="absolute inset-5 rounded-full bg-violet-600/10 blur-3xl" />
+
+      <svg
+        width="220"
+        height="220"
+        viewBox="0 0 220 220"
+        className="relative h-[190px] w-[190px] -rotate-90 sm:h-[220px] sm:w-[220px]"
+      >
+
+        <circle
+          cx="110"
+          cy="110"
+          r={radius}
+          fill="none"
+          stroke="rgba(255,255,255,0.055)"
+          strokeWidth="8"
+        />
+
+        <motion.circle
+          cx="110"
+          cy="110"
+          r={radius}
+          fill="none"
+          stroke="url(#resumeScoreGradient)"
+          strokeWidth="8"
+          strokeLinecap="round"
+          strokeDasharray={circumference}
+          initial={{
+            strokeDashoffset: circumference,
+          }}
+          animate={{
+            strokeDashoffset: progress,
+          }}
+          transition={{
+            duration: 1.5,
+            ease: "easeOut",
+          }}
+        />
+
+        <defs>
+          <linearGradient
+            id="resumeScoreGradient"
+            x1="0%"
+            y1="0%"
+            x2="100%"
+            y2="100%"
+          >
+            <stop
+              offset="0%"
+              stopColor="#8b5cf6"
+            />
+
+            <stop
+              offset="100%"
+              stopColor="#22d3ee"
+            />
+          </linearGradient>
+        </defs>
+
+      </svg>
+
+      <div className="absolute inset-0 flex flex-col items-center justify-center">
+
+        <span className="text-[9px] font-semibold uppercase tracking-[0.2em] text-gray-600 sm:text-[10px]">
+          Resume Score
+        </span>
+
+        <motion.p
+          initial={{
+            opacity: 0,
+            scale: 0.8,
+          }}
+          animate={{
+            opacity: 1,
+            scale: 1,
+          }}
+          transition={{
+            delay: 0.5,
+            duration: 0.5,
+          }}
+          className="mt-1 text-4xl font-bold tracking-tight text-white sm:text-5xl"
+        >
+          {safeScore}
+        </motion.p>
+
+        <span className="mt-1 text-xs text-gray-600">
+          / 100
+        </span>
+
+        <span className="mt-3 rounded-full border border-violet-500/20 bg-violet-500/10 px-3 py-1 text-[9px] font-bold uppercase tracking-wider text-violet-300">
+          {label}
+        </span>
+
+      </div>
+    </div>
+  );
+}
+
+
+/* ============================================================
+   SCORE BAR
+============================================================ */
+
+function ScoreBar({
+  label,
+  value,
+  delay = 0,
+}) {
+  const safeValue = Math.min(
+    100,
+    Math.max(0, Number(value || 0))
+  );
+
+  return (
+    <div>
+
+      <div className="mb-2 flex items-center justify-between gap-4">
+
+        <span className="min-w-0 text-xs text-gray-500">
+          {label}
+        </span>
+
+        <span className="shrink-0 text-xs font-semibold text-gray-300">
+          {safeValue}/100
+        </span>
+
+      </div>
+
+      <div className="h-1.5 overflow-hidden rounded-full bg-white/[0.05]">
+
+        <motion.div
+          initial={{
+            width: 0,
+          }}
+          animate={{
+            width: `${safeValue}%`,
+          }}
+          transition={{
+            delay,
+            duration: 0.9,
+            ease: "easeOut",
+          }}
+          className="h-full rounded-full bg-gradient-to-r from-violet-600 to-cyan-400"
+        />
+
+      </div>
+
+    </div>
+  );
+}
+
+
+/* ============================================================
+   STAT BOX
+============================================================ */
+
+function StatBox({
+  icon,
+  value,
+  label,
+  delay = 0,
+}) {
+  return (
+    <motion.div
+      initial={{
+        opacity: 0,
+        y: 15,
+      }}
+      animate={{
+        opacity: 1,
+        y: 0,
+      }}
+      transition={{
+        delay,
+      }}
+      whileHover={{
+        y: -3,
+      }}
+      className="min-w-0 rounded-2xl border border-white/[0.07] bg-white/[0.025] p-4 backdrop-blur-xl transition hover:border-violet-500/20 sm:p-5"
+    >
+
+      <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-white/[0.04] text-violet-300">
+        {icon}
+      </div>
+
+      <p className="mt-4 text-2xl font-semibold text-white">
+        {value}
+      </p>
+
+      <p className="mt-1 truncate text-[10px] uppercase tracking-wider text-gray-600">
+        {label}
+      </p>
+
+    </motion.div>
+  );
+}
+
+
+/* ============================================================
+   SKILL PANEL
+============================================================ */
+
+function SkillPanel({
+  icon,
+  title,
+  subtitle,
+  skills,
+  type,
+}) {
+  const isTechnical = type === "technical";
+
+  return (
+    <motion.section
+      initial={{
+        opacity: 0,
+        y: 15,
+      }}
+      animate={{
+        opacity: 1,
+        y: 0,
+      }}
+      whileHover={{
+        y: -2,
+      }}
+      className="relative min-w-0 overflow-hidden rounded-[1.75rem] border border-white/[0.07] bg-white/[0.025] p-5 backdrop-blur-xl sm:p-7"
+    >
+
+      <div
+        className={`absolute right-[-50px] top-[-50px] h-40 w-40 rounded-full blur-3xl ${
+          isTechnical
+            ? "bg-cyan-500/[0.05]"
+            : "bg-violet-500/[0.05]"
+        }`}
+      />
+
+      <div className="relative">
+
+        <div className="mb-6 flex items-start gap-4">
+
+          <div
+            className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border ${
+              isTechnical
+                ? "border-cyan-500/15 bg-cyan-500/10 text-cyan-300"
+                : "border-violet-500/15 bg-violet-500/10 text-violet-300"
+            }`}
+          >
+            {icon}
           </div>
 
-          <h2 className="text-xl font-semibold">
+          <div className="min-w-0">
+
+            <p
+              className={`text-[10px] font-semibold uppercase tracking-[0.18em] ${
+                isTechnical
+                  ? "text-cyan-300"
+                  : "text-violet-300"
+              }`}
+            >
+              {isTechnical
+                ? "Technical Profile"
+                : "Professional Profile"}
+            </p>
+
+            <h2 className="mt-1 font-semibold text-white">
+              {title}
+            </h2>
+
+            <p className="mt-1 text-xs text-gray-600">
+              {subtitle}
+            </p>
+
+          </div>
+        </div>
+
+        <div className="flex flex-wrap gap-2">
+
+          {skills.map((skill, index) => (
+            <motion.span
+              key={index}
+              whileHover={{
+                y: -2,
+              }}
+              className={`max-w-full break-words rounded-full border px-3 py-1.5 text-xs ${
+                isTechnical
+                  ? "border-cyan-500/20 bg-cyan-500/10 text-cyan-300"
+                  : "border-violet-500/20 bg-violet-500/10 text-violet-300"
+              }`}
+            >
+              {typeof skill === "string"
+                ? skill
+                : JSON.stringify(skill)}
+            </motion.span>
+          ))}
+
+        </div>
+
+      </div>
+    </motion.section>
+  );
+}
+
+
+/* ============================================================
+   INSIGHT PANEL
+============================================================ */
+
+function InsightPanel({
+  type,
+  title,
+  subtitle,
+  icon,
+  items,
+}) {
+  const isStrength = type === "strength";
+
+  return (
+    <motion.section
+      initial={{
+        opacity: 0,
+        y: 15,
+      }}
+      animate={{
+        opacity: 1,
+        y: 0,
+      }}
+      className="relative min-w-0 overflow-hidden rounded-[1.75rem] border border-white/[0.07] bg-white/[0.025] p-5 backdrop-blur-xl sm:p-7"
+    >
+
+      <div
+        className={`absolute right-[-50px] top-[-50px] h-40 w-40 rounded-full blur-3xl ${
+          isStrength
+            ? "bg-emerald-500/[0.05]"
+            : "bg-orange-500/[0.05]"
+        }`}
+      />
+
+      <div className="relative">
+
+        <div className="mb-6 flex items-start gap-4">
+
+          <div
+            className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border ${
+              isStrength
+                ? "border-emerald-500/15 bg-emerald-500/10 text-emerald-300"
+                : "border-orange-500/15 bg-orange-500/10 text-orange-300"
+            }`}
+          >
+            {icon}
+          </div>
+
+          <div className="min-w-0">
+
+            <p
+              className={`text-[10px] font-semibold uppercase tracking-[0.18em] ${
+                isStrength
+                  ? "text-emerald-300"
+                  : "text-orange-300"
+              }`}
+            >
+              {isStrength
+                ? "Positive Signals"
+                : "Growth Signals"}
+            </p>
+
+            <h2 className="mt-1 font-semibold text-white">
+              {title}
+            </h2>
+
+            <p className="mt-1 text-xs text-gray-600">
+              {subtitle}
+            </p>
+
+          </div>
+        </div>
+
+        <div className="space-y-3">
+
+          {items.length > 0 ? (
+            items.map((item, index) => (
+              <div
+                key={index}
+                className="group flex gap-3 rounded-xl border border-white/[0.05] bg-black/10 p-4 transition hover:border-white/[0.09]"
+              >
+
+                <div
+                  className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-lg text-[9px] font-bold ${
+                    isStrength
+                      ? "bg-emerald-500/10 text-emerald-300"
+                      : "bg-orange-500/10 text-orange-300"
+                  }`}
+                >
+                  {String(index + 1).padStart(2, "0")}
+                </div>
+
+                <p className="min-w-0 text-sm leading-6 text-gray-400">
+                  {typeof item === "string"
+                    ? item
+                    : JSON.stringify(item)}
+                </p>
+
+              </div>
+            ))
+          ) : (
+            <p className="text-sm text-gray-600">
+              No insights available.
+            </p>
+          )}
+
+        </div>
+      </div>
+    </motion.section>
+  );
+}
+
+
+/* ============================================================
+   LIST CARD
+============================================================ */
+
+function ListCard({
+  items,
+  icon: Icon,
+  title,
+  iconClass,
+}) {
+  if (!items || items.length === 0) {
+    return null;
+  }
+
+  return (
+    <motion.section
+      initial={{
+        opacity: 0,
+        y: 15,
+      }}
+      animate={{
+        opacity: 1,
+        y: 0,
+      }}
+      className="w-full rounded-[1.75rem] border border-white/[0.07] bg-white/[0.025] p-5 backdrop-blur-xl sm:p-7"
+    >
+
+      <div className="mb-6 flex items-center gap-4">
+
+        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-white/[0.07] bg-white/[0.04]">
+
+          <Icon
+            size={19}
+            className={iconClass}
+          />
+
+        </div>
+
+        <div>
+
+          <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-gray-600">
+            Resume Section
+          </p>
+
+          <h2 className="mt-1 font-semibold text-white">
             {title}
           </h2>
 
         </div>
+      </div>
 
-        {/* Items */}
+      <div className="space-y-3">
 
-        <div className="space-y-4">
+        {items.map((item, index) => (
+          <ResumeItem
+            key={index}
+            item={item}
+            title={title}
+            index={index}
+          />
+        ))}
 
-          {items.map((item, index) => (
+      </div>
 
-            <div
-              key={index}
-              className="rounded-2xl border border-white/10 bg-white/5 p-5"
-            >
+    </motion.section>
+  );
+}
 
-              {/* ==========================================
-                  EDUCATION
-              =========================================== */}
 
-              {title === "Education" &&
-              typeof item === "object" ? (
+/* ============================================================
+   RESUME ITEM
+============================================================ */
 
-                <div className="space-y-2">
+function ResumeItem({
+  item,
+  title,
+  index,
+}) {
+  /* EDUCATION */
 
-                  <h3 className="text-lg font-semibold text-white">
-                    {item.degree || "Degree not specified"}
-                  </h3>
+  if (
+    title === "Education" &&
+    item &&
+    typeof item === "object"
+  ) {
+    return (
+      <div className="rounded-2xl border border-white/[0.06] bg-black/10 p-4 sm:p-5">
 
-                  {item.institution && (
-                    <p className="text-gray-300">
-                      {item.institution}
-                    </p>
-                  )}
+        <div className="flex gap-4">
 
-                  {item.field && (
-                    <p className="text-sm text-gray-400">
-                      Field: {item.field}
-                    </p>
-                  )}
+          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-blue-500/10 text-xs font-bold text-blue-300">
+            {String(index + 1).padStart(2, "0")}
+          </div>
 
-                  {item.dates && (
-                    <p className="text-sm text-gray-400">
-                      {item.dates}
-                    </p>
-                  )}
+          <div className="min-w-0">
 
-                  {item.score && (
-                    <p className="text-sm text-cyan-300">
-                      {item.score}
-                    </p>
-                  )}
+            <h3 className="break-words font-semibold text-white">
+              {item.degree ||
+                "Degree not specified"}
+            </h3>
 
-                </div>
+            {item.institution && (
+              <p className="mt-1 break-words text-sm text-gray-300">
+                {item.institution}
+              </p>
+            )}
 
-              ) : title === "Experience" &&
-                typeof item === "object" ? (
+            {item.field && (
+              <p className="mt-1 break-words text-xs text-gray-500">
+                Field: {item.field}
+              </p>
+            )}
 
-                /* ==========================================
-                    EXPERIENCE
-                =========================================== */
+            {item.dates && (
+              <p className="mt-1 break-words text-xs text-gray-500">
+                {item.dates}
+              </p>
+            )}
 
-                <div className="space-y-3">
+            {item.score && (
+              <span className="mt-3 inline-block rounded-full border border-cyan-500/20 bg-cyan-500/10 px-3 py-1 text-xs text-cyan-300">
+                {item.score}
+              </span>
+            )}
 
-                  <div>
-
-                    <h3 className="text-lg font-semibold text-white">
-                      {item.role || "Role not specified"}
-                    </h3>
-
-                    {item.company && (
-                      <p className="text-gray-300">
-                        {item.company}
-                      </p>
-                    )}
-
-                    {item.duration && (
-                      <p className="mt-1 text-sm text-gray-500">
-                        {item.duration}
-                      </p>
-                    )}
-
-                  </div>
-
-                  {item.responsibilities?.length > 0 && (
-
-                    <ul className="space-y-2">
-
-                      {(Array.isArray(item.responsibilities)
-                      ? item.responsibilities
-                      : [item.responsibilities]
-                    ).map((responsibility, i) => (
-
-                          <li
-                            key={i}
-                            className="flex gap-2 text-sm leading-6 text-gray-400"
-                          >
-
-                            <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-emerald-400" />
-
-                            <span>
-                              {responsibility}
-                            </span>
-
-                          </li>
-
-                        )
-                      )}
-
-                    </ul>
-
-                  )}
-
-                </div>
-
-              ) : title === "Projects" &&
-                typeof item === "object" ? (
-
-                /* ==========================================
-                    PROJECTS
-                =========================================== */
-
-                <div className="space-y-3">
-
-                  <h3 className="text-lg font-semibold text-white">
-                    {item.name || "Project"}
-                  </h3>
-
-                  {item.technologies?.length > 0 && (
-
-                    <div className="flex flex-wrap gap-2">
-
-                      {item.technologies.map(
-                        (technology, i) => (
-
-                          <span
-                            key={i}
-                            className="rounded-full bg-cyan-500/10 px-3 py-1 text-xs text-cyan-300"
-                          >
-                            {technology}
-                          </span>
-
-                        )
-                      )}
-
-                    </div>
-
-                  )}
-
-                  {item.description && (
-
-                    <p className="text-sm leading-6 text-gray-400">
-                      {item.description}
-                    </p>
-
-                  )}
-
-                </div>
-
-              ) : (
-
-                /* ==========================================
-                    NORMAL STRING
-                =========================================== */
-
-                <p className="text-sm leading-6 text-gray-300">
-
-                  {typeof item === "string"
-                    ? item
-                    : JSON.stringify(item)}
-
-                </p>
-
-              )}
-
-            </div>
-
-          ))}
-
+          </div>
         </div>
-
-      </section>
+      </div>
     );
-  };
+  }
 
-  // ==========================================
-  // MAIN UI
-  // ==========================================
+  /* EXPERIENCE */
+
+  if (
+    title === "Experience" &&
+    item &&
+    typeof item === "object"
+  ) {
+    const responsibilities = normalizeArray(
+      item.responsibilities
+    );
+
+    return (
+      <div className="rounded-2xl border border-white/[0.06] bg-black/10 p-4 sm:p-5">
+
+        <div className="flex gap-4">
+
+          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-emerald-500/10 text-xs font-bold text-emerald-300">
+            {String(index + 1).padStart(2, "0")}
+          </div>
+
+          <div className="min-w-0 flex-1">
+
+            <h3 className="break-words font-semibold text-white">
+              {item.role ||
+                "Role not specified"}
+            </h3>
+
+            {item.company && (
+              <p className="mt-1 break-words text-sm text-gray-300">
+                {item.company}
+              </p>
+            )}
+
+            {item.duration && (
+              <p className="mt-1 break-words text-xs text-gray-500">
+                {item.duration}
+              </p>
+            )}
+
+            {responsibilities.length > 0 && (
+              <ul className="mt-4 space-y-2">
+
+                {responsibilities.map(
+                  (responsibility, i) => (
+                    <li
+                      key={i}
+                      className="flex gap-3 text-sm leading-6 text-gray-400"
+                    >
+
+                      <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-emerald-400" />
+
+                      <span className="min-w-0 break-words">
+                        {typeof responsibility ===
+                        "string"
+                          ? responsibility
+                          : JSON.stringify(
+                              responsibility
+                            )}
+                      </span>
+
+                    </li>
+                  )
+                )}
+
+              </ul>
+            )}
+
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  /* PROJECTS */
+
+  if (
+    title === "Projects" &&
+    item &&
+    typeof item === "object"
+  ) {
+    const technologies = normalizeArray(
+      item.technologies
+    );
+
+    return (
+      <div className="rounded-2xl border border-white/[0.06] bg-black/10 p-4 sm:p-5">
+
+        <div className="flex gap-4">
+
+          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-cyan-500/10 text-xs font-bold text-cyan-300">
+            {String(index + 1).padStart(2, "0")}
+          </div>
+
+          <div className="min-w-0 flex-1">
+
+            <h3 className="break-words font-semibold text-white">
+              {item.name || "Project"}
+            </h3>
+
+            {technologies.length > 0 && (
+              <div className="mt-3 flex flex-wrap gap-2">
+
+                {technologies.map(
+                  (technology, i) => (
+                    <span
+                      key={i}
+                      className="max-w-full break-words rounded-full border border-cyan-500/20 bg-cyan-500/10 px-3 py-1 text-[11px] text-cyan-300"
+                    >
+                      {typeof technology ===
+                      "string"
+                        ? technology
+                        : JSON.stringify(
+                            technology
+                          )}
+                    </span>
+                  )
+                )}
+
+              </div>
+            )}
+
+            {item.description && (
+              <p className="mt-4 break-words text-sm leading-6 text-gray-400">
+                {item.description}
+              </p>
+            )}
+
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  /* NORMAL STRING */
 
   return (
-    <div className="min-h-screen bg-[#070712] px-5 py-8 text-white md:px-8">
+    <div className="flex gap-3 rounded-xl border border-white/[0.05] bg-black/10 p-4">
 
-      {/* ==========================================
-          BACKGROUND GLOW
-      =========================================== */}
+      <CircleDot
+        size={14}
+        className="mt-1 shrink-0 text-violet-400"
+      />
 
-      <div className="pointer-events-none fixed inset-0 -z-10 overflow-hidden">
+      <p className="min-w-0 break-words text-sm leading-6 text-gray-400">
 
-        <div className="absolute left-0 top-0 h-96 w-96 rounded-full bg-violet-600/10 blur-[130px]" />
+        {typeof item === "string"
+          ? item
+          : JSON.stringify(item)}
 
-        <div className="absolute bottom-0 right-0 h-96 w-96 rounded-full bg-cyan-500/10 blur-[130px]" />
-
-      </div>
-
-      <div className="mx-auto max-w-7xl">
-
-        {/* ==========================================
-            TOP BAR
-        =========================================== */}
-
-        <div className="mb-8 flex items-center justify-between">
-
-          <button
-            onClick={() => navigate("/upload")}
-            className="flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 text-sm text-gray-300 transition hover:border-violet-500/50 hover:bg-white/10 hover:text-white"
-          >
-            <ArrowLeft size={17} />
-            Back to Resumes
-          </button>
-
-        </div>
-
-        {/* ==========================================
-            HEADER
-        =========================================== */}
-
-        <div className="mb-10">
-
-          <div className="flex flex-col gap-5 md:flex-row md:items-center md:justify-between">
-
-            <div className="flex items-center gap-4">
-
-              <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-violet-600 to-cyan-500 shadow-lg shadow-violet-500/20">
-                <Sparkles size={30} />
-              </div>
-
-              <div>
-
-                <h1 className="text-3xl font-bold md:text-4xl">
-                  AI Resume Analysis
-                </h1>
-
-                <div className="mt-2 flex items-center gap-2 text-sm text-gray-400">
-
-                  <FileText size={15} />
-
-                  <span className="max-w-[250px] truncate">
-                    {resume.fileName}
-                  </span>
-
-                  {resume.isCurrent && (
-
-                    <span className="flex items-center gap-1 rounded-full bg-emerald-500/10 px-2.5 py-1 text-xs text-emerald-400">
-
-                      <CheckCircle2 size={12} />
-
-                      Current
-
-                    </span>
-
-                  )}
-
-                </div>
-
-              </div>
-
-            </div>
-
-          </div>
-
-        </div>
-
-        {/* ==========================================
-            AI SUMMARY
-        =========================================== */}
-
-        {analysis.summary && (
-
-          <section className="mb-6 rounded-3xl border border-violet-500/20 bg-gradient-to-br from-violet-500/10 to-cyan-500/5 p-7 backdrop-blur-xl">
-
-            <div className="mb-5 flex items-center gap-3">
-
-              <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-violet-500/20">
-
-                <Sparkles
-                  size={22}
-                  className="text-violet-400"
-                />
-
-              </div>
-
-              <div>
-
-                <h2 className="text-xl font-semibold">
-                  AI Summary
-                </h2>
-
-                <p className="text-xs text-gray-500">
-                  CareerPilot AI
-                </p>
-
-              </div>
-
-            </div>
-
-            <p className="max-w-5xl leading-8 text-gray-300">
-              {analysis.summary}
-            </p>
-
-          </section>
-
-        )}
-
-        {/* ==========================================
-    RESUME SCORE
-========================================== */}
-
-{analysis.resumeScore && (
-  <section className="mb-6 rounded-3xl border border-violet-500/20 bg-gradient-to-br from-violet-500/10 via-white/[0.03] to-cyan-500/5 p-7 backdrop-blur-xl">
-
-    <div className="mb-7 flex items-center gap-3">
-
-      <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-violet-500/10">
-        <Gauge
-          size={22}
-          className="text-violet-400"
-        />
-      </div>
-
-      <div>
-        <h2 className="text-xl font-semibold">
-          Resume Score
-        </h2>
-
-        <p className="text-sm text-gray-500">
-          Overall strength of your resume
-        </p>
-      </div>
+      </p>
 
     </div>
-
-    <div className="grid gap-8 lg:grid-cols-[240px_1fr]">
-
-      {/* ==========================================
-          OVERALL SCORE
-      =========================================== */}
-
-      <div className="flex flex-col items-center justify-center">
-
-        <div
-          className="relative flex h-48 w-48 items-center justify-center rounded-full"
-          style={{
-            background: `conic-gradient(
-              rgb(139 92 246) ${analysis.resumeScore.overall * 3.6}deg,
-              rgba(255,255,255,0.06) 0deg
-            )`,
-          }}
-        >
-
-          <div className="flex h-40 w-40 flex-col items-center justify-center rounded-full bg-[#070712]">
-
-            <span className="text-5xl font-bold text-white">
-              {analysis.resumeScore.overall}
-            </span>
-
-            <span className="mt-1 text-sm text-gray-500">
-              / 100
-            </span>
-
-          </div>
-
-        </div>
-
-        <div className="mt-5 text-center">
-
-          <p className="font-semibold text-violet-300">
-            {analysis.resumeScore.overall >= 85
-              ? "Excellent Resume"
-              : analysis.resumeScore.overall >= 70
-              ? "Good Resume"
-              : analysis.resumeScore.overall >= 50
-              ? "Needs Improvement"
-              : "Needs Significant Improvement"}
-          </p>
-
-          {analysis.resumeScore.feedback && (
-            <p className="mt-2 max-w-xs text-sm leading-6 text-gray-400">
-              {analysis.resumeScore.feedback}
-            </p>
-          )}
-
-        </div>
-
-      </div>
+  );
+}
 
 
-      {/* ==========================================
-          SCORE BREAKDOWN
-      =========================================== */}
+/* ============================================================
+   NORMALIZE ARRAY
+============================================================ */
 
-      <div>
+function normalizeArray(value) {
+  if (Array.isArray(value)) {
+    return value;
+  }
 
-        <div className="mb-4 flex items-center gap-2">
+  if (value === null || value === undefined) {
+    return [];
+  }
 
-          <TrendingUp
-            size={18}
-            className="text-cyan-400"
-          />
+  if (typeof value === "string") {
+    return value.trim()
+      ? [value]
+      : [];
+  }
 
-          <h3 className="font-semibold text-gray-200">
-            Score Breakdown
-          </h3>
+  if (typeof value === "object") {
+    return [value];
+  }
 
-        </div>
+  return [String(value)];
+}
 
-        <div className="grid gap-4 sm:grid-cols-2">
 
-          {[
-            {
-              label: "Content Quality",
-              value: analysis.resumeScore.contentQuality,
-            },
-            {
-              label: "Skills",
-              value: analysis.resumeScore.skills,
-            },
-            {
-              label: "Projects & Experience",
-              value: analysis.resumeScore.projectsExperience,
-            },
-            {
-              label: "Keywords",
-              value: analysis.resumeScore.keywords,
-            },
-            {
-              label: "Structure",
-              value: analysis.resumeScore.structure,
-            },
-          ].map((item) => (
+/* ============================================================
+   META PILL
+============================================================ */
 
-            <div
-              key={item.label}
-              className="rounded-2xl border border-white/10 bg-white/5 p-4"
-            >
+function MetaPill({
+  icon,
+  text,
+}) {
+  return (
+    <div className="flex min-w-0 max-w-full items-center gap-2 rounded-xl border border-white/[0.07] bg-white/[0.025] px-3 py-2 text-xs text-gray-500">
 
-              <div className="mb-3 flex items-center justify-between">
+      <span className="shrink-0 text-gray-600">
+        {icon}
+      </span>
 
-                <span className="text-sm text-gray-400">
-                  {item.label}
-                </span>
-
-                <span className="text-sm font-semibold text-white">
-                  {item.value}/100
-                </span>
-
-              </div>
-
-              <div className="h-2 overflow-hidden rounded-full bg-white/10">
-
-                <div
-                  className="h-full rounded-full bg-gradient-to-r from-violet-500 to-cyan-400 transition-all duration-700"
-                  style={{
-                    width: `${item.value}%`,
-                  }}
-                />
-
-              </div>
-
-            </div>
-
-          ))}
-
-        </div>
-
-      </div>
+      <span className="max-w-[260px] truncate">
+        {text}
+      </span>
 
     </div>
-
-  </section>
-)}
-
-
-        {/* ==========================================
-            SKILLS
-        =========================================== */}
-
-        <div className="mb-6 grid gap-6 lg:grid-cols-2">
-
-          {/* Technical Skills */}
-
-          {analysis.technicalSkills?.length > 0 && (
-
-            <section className="rounded-3xl border border-white/10 bg-white/5 p-7 backdrop-blur-xl">
-
-              <div className="mb-6 flex items-center gap-3">
-
-                <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-cyan-500/10">
-
-                  <Code2
-                    size={22}
-                    className="text-cyan-400"
-                  />
-
-                </div>
-
-                <h2 className="text-xl font-semibold">
-                  Technical Skills
-                </h2>
-
-              </div>
-
-              <div className="flex flex-wrap gap-3">
-
-                {analysis.technicalSkills.map(
-                  (skill, index) => (
-
-                    <span
-                      key={index}
-                      className="rounded-full border border-cyan-500/20 bg-cyan-500/10 px-4 py-2 text-sm text-cyan-300"
-                    >
-                      {skill}
-                    </span>
-
-                  )
-                )}
-
-              </div>
-
-            </section>
-
-          )}
-
-          {/* Soft Skills */}
-
-          {analysis.softSkills?.length > 0 && (
-
-            <section className="rounded-3xl border border-white/10 bg-white/5 p-7 backdrop-blur-xl">
-
-              <div className="mb-6 flex items-center gap-3">
-
-                <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-violet-500/10">
-
-                  <Users
-                    size={22}
-                    className="text-violet-400"
-                  />
-
-                </div>
-
-                <h2 className="text-xl font-semibold">
-                  Soft Skills
-                </h2>
-
-              </div>
-
-              <div className="flex flex-wrap gap-3">
-
-                {analysis.softSkills.map(
-                  (skill, index) => (
-
-                    <span
-                      key={index}
-                      className="rounded-full border border-violet-500/20 bg-violet-500/10 px-4 py-2 text-sm text-violet-300"
-                    >
-                      {skill}
-                    </span>
-
-                  )
-                )}
-
-              </div>
-
-            </section>
-
-          )}
-
-        </div>
-
-        {/* ==========================================
-            STRENGTHS + WEAKNESSES
-        =========================================== */}
-
-        <div className="mb-6 grid gap-6 lg:grid-cols-2">
-
-          <ListCard
-            items={analysis.strengths}
-            icon={CheckCircle2}
-            title="Your Strengths"
-            iconClass="text-emerald-400"
-          />
-
-          <ListCard
-            items={analysis.weaknesses}
-            icon={AlertTriangle}
-            title="Areas to Improve"
-            iconClass="text-orange-400"
-          />
-
-        </div>
-
-        {/* ==========================================
-            MISSING SKILLS
-        =========================================== */}
-
-        {analysis.missingSkills?.length > 0 && (
-
-          <section className="mb-6 rounded-3xl border border-orange-500/20 bg-orange-500/5 p-7 backdrop-blur-xl">
-
-            <div className="mb-6 flex items-center gap-3">
-
-              <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-orange-500/10">
-
-                <Lightbulb
-                  size={22}
-                  className="text-orange-400"
-                />
-
-              </div>
-
-              <div>
-
-                <h2 className="text-xl font-semibold">
-                  Skills You Should Develop
-                </h2>
-
-                <p className="text-sm text-gray-500">
-                  Recommended based on your career direction
-                </p>
-
-              </div>
-
-            </div>
-
-            <div className="flex flex-wrap gap-3">
-
-              {analysis.missingSkills.map(
-                (skill, index) => (
-
-                  <div
-                    key={index}
-                    className="rounded-xl border border-orange-500/20 bg-orange-500/10 px-4 py-3 text-sm text-orange-300"
-                  >
-                    {skill}
-                  </div>
-
-                )
-              )}
-
-            </div>
-
-          </section>
-
-        )}
-
-        {/* ==========================================
-            SUGGESTED ROLES
-        =========================================== */}
-
-        {analysis.suggestedRoles?.length > 0 && (
-
-          <section className="mb-6 rounded-3xl border border-violet-500/20 bg-violet-500/5 p-7 backdrop-blur-xl">
-
-            <div className="mb-6 flex items-center gap-3">
-
-              <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-violet-500/10">
-
-                <Target
-                  size={22}
-                  className="text-violet-400"
-                />
-
-              </div>
-
-              <div>
-
-                <h2 className="text-xl font-semibold">
-                  Suggested Career Roles
-                </h2>
-
-                <p className="text-sm text-gray-500">
-                  Roles that match your current profile
-                </p>
-
-              </div>
-
-            </div>
-
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-
-              {analysis.suggestedRoles.map(
-                (role, index) => (
-
-                  <div
-                    key={index}
-                    className="group rounded-2xl border border-white/10 bg-white/5 p-5 transition hover:border-violet-500/40 hover:bg-white/10"
-                  >
-
-                    <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-xl bg-violet-500/10">
-
-                      <Briefcase
-                        size={20}
-                        className="text-violet-400"
-                      />
-
-                    </div>
-
-                    <h3 className="font-medium text-gray-200">
-                      {role}
-                    </h3>
-
-                  </div>
-
-                )
-              )}
-
-            </div>
-
-          </section>
-
-        )}
-
-        {/* ==========================================
-            EDUCATION
-        =========================================== */}
-
-        <ListCard
-          items={analysis.education}
-          icon={GraduationCap}
-          title="Education"
-          iconClass="text-blue-400"
-        />
-
-        {/* ==========================================
-            EXPERIENCE
-        =========================================== */}
-
-        <div className="mt-6">
-
-          <ListCard
-            items={analysis.experience}
-            icon={Briefcase}
-            title="Experience"
-            iconClass="text-emerald-400"
-          />
-
-        </div>
-
-        {/* ==========================================
-            PROJECTS
-        =========================================== */}
-
-        <div className="mt-6">
-
-          <ListCard
-            items={analysis.projects}
-            icon={FolderGit2}
-            title="Projects"
-            iconClass="text-cyan-400"
-          />
-
-        </div>
-
-        {/* ==========================================
-            FOOTER
-        =========================================== */}
-
-        <div className="mt-10 rounded-2xl border border-white/5 bg-white/[0.03] p-5 text-center">
-
-          <p className="flex items-center justify-center gap-2 text-sm text-gray-500">
-
-            <Sparkles size={15} />
-
-            Analysis generated by CareerPilot AI
-
-          </p>
-
-        </div>
-
-      </div>
+  );
+}
+
+
+/* ============================================================
+   SECTION TITLE
+============================================================ */
+
+function SectionTitle({
+  eyebrow,
+  title,
+  description,
+}) {
+  return (
+    <div className="mb-5">
+
+      <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-violet-300">
+        {eyebrow}
+      </p>
+
+      <h2 className="mt-1 text-xl font-semibold text-white sm:text-2xl">
+        {title}
+      </h2>
+
+      <p className="mt-1 max-w-2xl text-xs leading-5 text-gray-600">
+        {description}
+      </p>
 
     </div>
+  );
+}
+
+
+/* ============================================================
+   ROTATE ICON
+============================================================ */
+
+function RotateIcon() {
+  return (
+    <svg
+      width="16"
+      height="16"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M3 12a9 9 0 0 1 15-6.7L21 8" />
+      <path d="M21 3v5h-5" />
+      <path d="M21 12a9 9 0 0 1-15 6.7L3 16" />
+      <path d="M3 21v-5h5" />
+    </svg>
   );
 }

@@ -90,7 +90,7 @@ export default function Login() {
               href="/#"
               className="ml-2 font-semibold text-violet-300 transition hover:text-violet-50"
             >
-              return to home
+              Back
             </a>
             </motion.div>
 

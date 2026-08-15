@@ -2,6 +2,8 @@ import { useState } from "react";
 import Sidebar from "./Sidebar";
 import TopNavbar from "./TopNavbar";
 
+import PageBackground from "../common/PageBackground";
+
 export default function DashboardLayout({ children }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
@@ -27,6 +29,8 @@ export default function DashboardLayout({ children }) {
       >
 
         <TopNavbar />
+
+        <PageBackground />
 
         <main className="px-6 py-6 lg:px-8">
           {children}

@@ -3,132 +3,349 @@ import {
   Brain,
   Briefcase,
   ChartColumn,
-  ArrowRight,
+  Send,
+  ArrowUpRight,
 } from "lucide-react";
+import { motion } from "framer-motion";
+
+const features = [
+  {
+    number: "01",
+    title: "AI Resume Analysis",
+    description:
+      "Upload your resume and get AI-powered insights, ATS feedback, keyword suggestions, and actionable improvements.",
+    icon: FileSearch,
+  },
+  {
+    number: "02",
+    title: "Career Match",
+    description:
+      "Compare your skills with a target role, discover your strengths, identify skill gaps, and see how ready you are to apply.",
+    icon: ChartColumn,
+  },
+  {
+    number: "03",
+    title: "Personalized Roadmap",
+    description:
+      "Get a clear learning path based on your current skills and the career you're working toward.",
+    icon: Briefcase,
+  },
+  {
+    number: "04",
+    title: "AI Interview",
+    description:
+      "Practice realistic interview questions tailored to your resume, skills, and target career.",
+    icon: Brain,
+  },
+  {
+    number: "05",
+    title: "Job Applications",
+    description:
+      "Turn your career preparation into action with smarter job application support and personalized opportunities.",
+    icon: Send,
+  },
+];
 
 export default function Features() {
   return (
     <section
       id="features"
-      className="relative bg-[#050816] py-28 text-white"
+      className="
+        relative
+        overflow-hidden
+        bg-[#050816]
+        py-24
+        text-white
+        sm:py-28
+      "
     >
-      <div className="mx-auto max-w-7xl px-6">
+      {/* Background glow */}
 
-        {/* Heading */}
-        <div className="text-center">
-          <p className="font-semibold text-violet-400">
-            FEATURES
+      <div
+        className="
+          pointer-events-none
+          absolute
+          left-1/2
+          top-1/2
+          h-[420px]
+          w-[420px]
+          -translate-x-1/2
+          -translate-y-1/2
+          rounded-full
+          bg-violet-600/[0.045]
+          blur-[140px]
+        "
+      />
+
+      <div className="relative mx-auto max-w-6xl px-6">
+
+        {/* HEADER */}
+
+        <motion.div
+          initial={{
+            opacity: 0,
+            y: 15,
+          }}
+          whileInView={{
+            opacity: 1,
+            y: 0,
+          }}
+          viewport={{
+            once: true,
+          }}
+          transition={{
+            duration: 0.5,
+          }}
+          className="mx-auto max-w-3xl text-center"
+        >
+          <p
+            className="
+              text-[10px]
+              font-semibold
+              uppercase
+              tracking-[3px]
+              text-violet-400
+            "
+          >
+            Everything you need
           </p>
 
-          <h2 className="mt-4 text-5xl font-bold">
-            Everything You Need To
-            <span className="block bg-gradient-to-r from-violet-400 to-cyan-400 bg-clip-text text-transparent">
-              Launch Your Career
+          <h2
+            className="
+              mt-5
+              text-3xl
+              font-bold
+              tracking-tight
+              sm:text-4xl
+              lg:text-5xl
+            "
+          >
+            Your career journey,
+            <span
+              className="
+                ml-2
+                bg-gradient-to-r
+                from-violet-400
+                to-cyan-400
+                bg-clip-text
+                text-transparent
+              "
+            >
+              powered by AI.
             </span>
           </h2>
 
-          <p className="mx-auto mt-6 max-w-2xl text-lg text-gray-400">
-            CareerPilot combines AI with career guidance to help you
-            improve your resume, prepare for interviews and become
-            job-ready.
+          <p
+            className="
+              mx-auto
+              mt-5
+              max-w-2xl
+              text-sm
+              leading-7
+              text-gray-500
+              sm:text-base
+            "
+          >
+            From improving your resume to preparing for interviews
+            and finding your next opportunity, CareerPilot brings
+            everything together in one place.
           </p>
-        </div>
+        </motion.div>
 
-        {/* Bento Grid */}
-        <div className="mt-20 grid auto-rows-[240px] gap-6 lg:grid-cols-3">
+        {/* FEATURE GRID */}
 
-          {/* Large Card */}
-          <div className="group col-span-2 rounded-3xl border border-white/10 bg-white/5 p-8 backdrop-blur-xl transition hover:border-violet-500/40 hover:bg-white/10">
+        <div
+          className="
+            mx-auto
+            mt-14
+            grid
+            max-w-5xl
+            gap-4
+            sm:mt-16
+            sm:grid-cols-2
+            lg:grid-cols-6
+          "
+        >
+          {features.map((feature, index) => {
+            const Icon = feature.icon;
 
-            <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-r from-violet-600 to-cyan-500">
-              <FileSearch size={28} />
-            </div>
+            const isLast = index === 4;
 
-            <h3 className="mt-8 text-3xl font-bold">
-              AI Resume Analysis
-            </h3>
+            return (
+              <motion.div
+                key={feature.title}
+                initial={{
+                  opacity: 0,
+                  y: 20,
+                }}
+                whileInView={{
+                  opacity: 1,
+                  y: 0,
+                }}
+                viewport={{
+                  once: true,
+                }}
+                transition={{
+                  duration: 0.45,
+                  delay: index * 0.07,
+                }}
+                className={`
+                  group
+                  relative
+                  overflow-hidden
+                  rounded-[24px]
+                  border
+                  border-white/[0.07]
+                  bg-white/[0.025]
+                  p-6
+                  transition-all
+                  duration-300
+                  hover:-translate-y-1
+                  hover:border-violet-400/20
+                  hover:bg-white/[0.035]
 
-            <p className="mt-4 max-w-lg text-gray-400 leading-7">
-              Upload your resume and instantly receive an job match,
-              personalized feedback, keyword suggestions and actionable
-              improvements.
-            </p>
+                  ${
+                    isLast
+                      ? "sm:col-span-2 lg:col-span-2 lg:col-start-3"
+                      : "lg:col-span-2"
+                  }
+                `}
+              >
 
-            <button className="mt-8 flex items-center gap-2 text-violet-400 hover:text-violet-300">
-              Learn More
-              <ArrowRight size={18} />
-            </button>
+                {/* Hover glow */}
 
-          </div>
+                <div
+                  className="
+                    pointer-events-none
+                    absolute
+                    -right-16
+                    -top-16
+                    h-32
+                    w-32
+                    rounded-full
+                    bg-violet-500/[0.08]
+                    blur-[55px]
+                    opacity-0
+                    transition-opacity
+                    duration-500
+                    group-hover:opacity-100
+                  "
+                />
 
-          {/* Card */}
-          <div className="rounded-3xl border border-white/10 bg-white/5 p-8 backdrop-blur-xl transition hover:border-cyan-500/40 hover:bg-white/10">
+                {/* Top */}
 
-            <Brain size={34} className="text-cyan-400" />
+                <div
+                  className="
+                    relative
+                    flex
+                    items-center
+                    justify-between
+                  "
+                >
+                  <div
+                    className="
+                      flex
+                      h-11
+                      w-11
+                      items-center
+                      justify-center
+                      rounded-xl
+                      border
+                      border-violet-400/10
+                      bg-violet-500/[0.07]
+                      text-violet-300
+                      transition-all
+                      duration-300
+                      group-hover:border-violet-400/20
+                      group-hover:bg-violet-500/[0.11]
+                    "
+                  >
+                    <Icon
+                      size={20}
+                      strokeWidth={1.7}
+                    />
+                  </div>
 
-            <h3 className="mt-6 text-2xl font-semibold">
-              AI Interview
-            </h3>
+                  <span
+                    className="
+                      text-[10px]
+                      font-medium
+                      tracking-[1px]
+                      text-gray-700
+                    "
+                  >
+                    {feature.number}
+                  </span>
+                </div>
 
-            <p className="mt-4 text-gray-400">
-              Practice personalized interview questions generated from
-              your resume.
-            </p>
+                {/* Content */}
 
-          </div>
+                <div className="relative mt-7">
 
-          {/* Card */}
-          <div className="rounded-3xl border border-white/10 bg-white/5 p-8 backdrop-blur-xl transition hover:border-pink-500/40 hover:bg-white/10">
+                  <h3
+                    className="
+                      text-xl
+                      font-semibold
+                      tracking-tight
+                      text-white
+                    "
+                  >
+                    {feature.title}
+                  </h3>
 
-            <Briefcase size={34} className="text-pink-400" />
+                  <p
+                    className="
+                      mt-3
+                      text-sm
+                      leading-6
+                      text-gray-500
+                    "
+                  >
+                    {feature.description}
+                  </p>
 
-            <h3 className="mt-6 text-2xl font-semibold">
-              Career Roadmap
-            </h3>
+                </div>
 
-            <p className="mt-4 text-gray-400">
-              Know exactly what to learn next based on your target role.
-            </p>
+                {/* Arrow */}
 
-          </div>
+                <ArrowUpRight
+                  size={15}
+                  className="
+                    absolute
+                    bottom-6
+                    right-6
+                    text-gray-700
+                    transition-all
+                    duration-300
+                    group-hover:-translate-y-0.5
+                    group-hover:translate-x-0.5
+                    group-hover:text-violet-300
+                  "
+                />
 
-          {/* Wide Card */}
-          <div className="col-span-2 rounded-3xl border border-white/10 bg-white/5 p-8 backdrop-blur-xl transition hover:border-green-500/40 hover:bg-white/10">
+                {/* Bottom accent */}
 
-            <ChartColumn size={34} className="text-green-400" />
+                <div
+                  className="
+                    absolute
+                    bottom-0
+                    left-7
+                    right-7
+                    h-px
+                    origin-left
+                    scale-x-0
+                    bg-gradient-to-r
+                    from-violet-400/60
+                    to-cyan-400/40
+                    transition-transform
+                    duration-500
+                    group-hover:scale-x-100
+                  "
+                />
 
-            <h3 className="mt-6 text-3xl font-bold">
-  Career Match
-</h3>
-
-<p className="mt-4 max-w-xl text-gray-400 leading-7">
-  See how well your skills match a specific role,
-  discover the skills you already have, and identify what you
-  need to develop before applying.
-</p>
-
-<div className="mt-0 flex flex-wrap gap-3">
-  <span className="rounded-full bg-violet-500/20 px-4 py-2 text-sm text-violet-300">
-    Strong Match
-  </span>
-
-  <span className="rounded-full bg-cyan-500/20 px-4 py-2 text-sm text-cyan-300">
-    Partial Match
-  </span>
-
-  <span className="rounded-full bg-pink-500/20 px-4 py-2 text-sm text-pink-300">
-    Skills to Develop
-  </span>
-
-  <span className="rounded-full bg-green-500/20 px-4 py-2 text-sm text-green-300">
-    Apply Recommendation
-  </span>
-
-</div>
-            
-
-          </div>
-
+              </motion.div>
+            );
+          })}
         </div>
 
       </div>

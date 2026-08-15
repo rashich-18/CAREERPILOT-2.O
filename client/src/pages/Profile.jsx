@@ -1,8 +1,8 @@
-import { useEffect, useState, useRef, } from "react";
+import { useEffect, useState, useRef } from "react";
 import { motion } from "framer-motion";
+import PageBackground from "../components/common/PageBackground";
 import {
   User,
-  GraduationCap,
   BriefcaseBusiness,
   Globe,
   Camera,
@@ -17,7 +17,6 @@ import {
 } from "lucide-react";
 
 import { useNavigate } from "react-router-dom";
-
 import { FaGithub, FaLinkedin } from "react-icons/fa";
 
 import API from "../api/profileApi";
@@ -25,15 +24,14 @@ import toast from "react-hot-toast";
 
 export default function Profile() {
   const navigate = useNavigate();
-  const [profile, setProfile] = useState(null);
 
+  const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState(false);
   const [saving, setSaving] = useState(false);
-  const fileInputRef = useRef(null);
+  const [uploadingPicture, setUploadingPicture] = useState(false);
 
-const [uploadingPicture, setUploadingPicture] =
-  useState(false);
+  const fileInputRef = useRef(null);
 
   // ==========================================
   // FETCH PROFILE
@@ -61,20 +59,9 @@ const [uploadingPicture, setUploadingPicture] =
       if (response.data.success) {
         const user = response.data.user;
 
-        localStorage.setItem(
-  "user",
-  JSON.stringify(user)
-);
+        localStorage.setItem("user", JSON.stringify(user));
 
-window.dispatchEvent(
-  new Event("userUpdated")
-);
-
-        console.log("USER FROM BACKEND:", user);
-console.log(
-  "PROFILE PICTURE FROM BACKEND:",
-  user.profilePicture
-);
+        window.dispatchEvent(new Event("userUpdated"));
 
         setProfile({
           fullName: user.name || "",
@@ -131,142 +118,134 @@ console.log(
     }
   };
 
-// ==========================================
-// HANDLE INPUT
-// ==========================================
+  // ==========================================
+  // HANDLE INPUT
+  // ==========================================
 
-const handleChange = (e) => {
-  const { name, value } = e.target;
+  const handleChange = (e) => {
+    const { name, value } = e.target;
 
-  setProfile((prev) => ({
-    ...prev,
-    [name]: value,
-  }));
-};
+    setProfile((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
 
+  // ==========================================
+  // HANDLE PROFILE PICTURE
+  // ==========================================
 
-// ==========================================
-// HANDLE PROFILE PICTURE
-// ==========================================
-                                  
-const handleProfilePictureChange = async (e) => {
-  const file = e.target.files?.[0];
+  const handleProfilePictureChange = async (e) => {
+    const file = e.target.files?.[0];
 
-  if (!file) return;
+    if (!file) return;
 
-  // Validate image
-  if (!file.type.startsWith("image/")) {
-    toast.error("Please select an image file.");
-    return;
-  }
-
-  // Max 2MB
-  if (file.size > 2 * 1024 * 1024) {
-    toast.error(
-      "Profile picture must be smaller than 2 MB."
-    );
-    return;
-  }
-
-  try {
-    setUploadingPicture(true);
-
-    const token = localStorage.getItem("token");
-
-    if (!token) {
-      toast.error("Please login again.");
-      navigate("/login");
+    if (!file.type.startsWith("image/")) {
+      toast.error("Please select an image file.");
       return;
     }
 
-    const data = new FormData();
+    if (file.size > 2 * 1024 * 1024) {
+      toast.error(
+        "Profile picture must be smaller than 2 MB."
+      );
+      return;
+    }
 
-    data.append("profilePicture", file);
+    try {
+      setUploadingPicture(true);
 
-    const response = await API.put(
-      "/profile",
-      data,
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+      const token = localStorage.getItem("token");
+
+      if (!token) {
+        toast.error("Please login again.");
+        navigate("/login");
+        return;
       }
-    );
 
-    if (response.data.success) {
-      toast.success(
-        "Profile picture updated!"
+      const data = new FormData();
+      data.append("profilePicture", file);
+
+      const response = await API.put(
+        "/profile",
+        data,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
       );
 
-      await fetchProfile();
-    }
-
-  } catch (error) {
-    console.error(
-      "PROFILE PICTURE ERROR:",
-      error
-    );
-
-    toast.error(
-      error.response?.data?.message ||
-        "Failed to update profile picture."
-    );
-
-  } finally {
-    setUploadingPicture(false);
-
-    // Allow selecting the same file again
-    e.target.value = "";
-  }
-};
-
-// ==========================================
-// HANDLE REMOVE PROFILE PICTURE
-// ==========================================
-const handleRemoveProfilePicture = async () => {
-  try {
-    setUploadingPicture(true);
-
-    const token = localStorage.getItem("token");
-
-    if (!token) {
-      toast.error("Please login again.");
-      navigate("/login");
-      return;
-    }
-
-    const response = await API.put(
-      "/profile",
-      { removeProfilePicture: true },
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+      if (response.data.success) {
+        toast.success("Profile picture updated!");
+        await fetchProfile();
       }
-    );
+    } catch (error) {
+      console.error(
+        "PROFILE PICTURE ERROR:",
+        error
+      );
 
-    if (response.data.success) {
-      toast.success("Profile picture removed!");
-
-      await fetchProfile();
+      toast.error(
+        error.response?.data?.message ||
+          "Failed to update profile picture."
+      );
+    } finally {
+      setUploadingPicture(false);
+      e.target.value = "";
     }
-  } catch (error) {
-    console.error("REMOVE PROFILE PICTURE ERROR:", error);
+  };
 
-    toast.error(
-      error.response?.data?.message ||
-        "Failed to remove profile picture."
-    );
-  } finally {
-    setUploadingPicture(false);
-  }
-};
+  // ==========================================
+  // REMOVE PROFILE PICTURE
+  // ==========================================
 
-// ==========================================
-// HANDLE SAVE
-// ==========================================
+  const handleRemoveProfilePicture = async () => {
+    try {
+      setUploadingPicture(true);
 
-const handleSubmit = async (e) => {
+      const token = localStorage.getItem("token");
+
+      if (!token) {
+        toast.error("Please login again.");
+        navigate("/login");
+        return;
+      }
+
+      const response = await API.put(
+        "/profile",
+        { removeProfilePicture: true },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (response.data.success) {
+        toast.success("Profile picture removed!");
+        await fetchProfile();
+      }
+    } catch (error) {
+      console.error(
+        "REMOVE PROFILE PICTURE ERROR:",
+        error
+      );
+
+      toast.error(
+        error.response?.data?.message ||
+          "Failed to remove profile picture."
+      );
+    } finally {
+      setUploadingPicture(false);
+    }
+  };
+
+  // ==========================================
+  // HANDLE SAVE
+  // ==========================================
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     try {
@@ -315,12 +294,16 @@ const handleSubmit = async (e) => {
 
       if (response.data.success) {
         toast.success("Profile updated successfully!");
+
         setEditing(false);
 
         await fetchProfile();
       }
     } catch (error) {
-      console.error("Profile update error:", error);
+      console.error(
+        "Profile update error:",
+        error
+      );
 
       toast.error(
         error.response?.data?.message ||
@@ -338,7 +321,7 @@ const handleSubmit = async (e) => {
   if (loading) {
     return (
       <main className="flex min-h-screen items-center justify-center bg-[#070914]">
-        <div className="text-sm text-gray-500 animate-pulse">
+        <div className="animate-pulse text-sm text-gray-500">
           Loading your profile...
         </div>
       </main>
@@ -346,7 +329,7 @@ const handleSubmit = async (e) => {
   }
 
   // ==========================================
-  // ERROR / NO PROFILE
+  // NO PROFILE
   // ==========================================
 
   if (!profile) {
@@ -359,7 +342,7 @@ const handleSubmit = async (e) => {
 
           <button
             onClick={fetchProfile}
-            className="mt-4 rounded-xl bg-violet-600 px-5 py-2 text-sm text-white hover:bg-violet-500"
+            className="mt-4 rounded-xl bg-violet-600 px-5 py-2 text-sm text-white transition hover:bg-violet-500"
           >
             Try Again
           </button>
@@ -373,29 +356,63 @@ const handleSubmit = async (e) => {
   // ==========================================
 
   return (
-    <main className="min-h-screen bg-[#070914] px-4 pb-12 pt-6 sm:px-6 lg:px-8">
+    <main className="min-h-screen bg-[#070914] px-3 pb-10 pt-5 sm:px-4 lg:px-5">
+      <PageBackground />
 
-      <div className="mx-auto max-w-6xl">
+      {/* IMPORTANT:
+          Wider desktop container + very small side padding
+      */}
 
-        <button
-      onClick={() => navigate("/dashboard")}
-      className="mb-8 inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 text-sm font-medium text-gray-300 transition hover:border-violet-500/30 hover:bg-white/10 hover:text-white"
-    >
-      <ArrowLeft size={17} />
-      Back to Dashboard
-    </button>
+      <div className="relative mx-auto w-full max-w-[1400px]">
+
+        {/* ================================= */}
+        {/* BACK BUTTON */}
+        {/* ================================= */}
+
+        <motion.button
+          type="button"
+          onClick={() => navigate("/dashboard")}
+          initial={{
+            opacity: 0,
+            x: -8,
+          }}
+          animate={{
+            opacity: 1,
+            x: 0,
+          }}
+          transition={{
+            duration: 0.35,
+            ease: [0.22, 1, 0.36, 1],
+          }}
+          whileHover={{
+            x: -2,
+          }}
+          whileTap={{
+            scale: 0.97,
+          }}
+          className="mb-5 inline-flex items-center gap-2 rounded-xl border border-white/[0.07] bg-white/[0.035] px-4 py-2.5 text-xs font-medium text-gray-400 transition hover:border-violet-500/30 hover:bg-white/[0.06] hover:text-white"
+        >
+          <ArrowLeft size={16} />
+          Back to Dashboard
+        </motion.button>
 
         {/* ================================= */}
         {/* HEADER */}
         {/* ================================= */}
 
         <motion.div
-          initial={{ opacity: 0, y: 15 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="mb-8 flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between"
+          initial={{
+            opacity: 0,
+            y: 15,
+          }}
+          animate={{
+            opacity: 1,
+            y: 0,
+          }}
+          className="mb-5 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between"
         >
           <div>
-            <p className="mb-2 text-sm text-violet-300">
+            <p className="mb-1.5 text-sm text-violet-300">
               Your profile
             </p>
 
@@ -405,14 +422,12 @@ const handleSubmit = async (e) => {
                 : "Your career profile"}
             </h1>
 
-            <p className="mt-2 max-w-2xl text-sm leading-6 text-gray-500">
+            <p className="mt-1.5 max-w-2xl text-sm leading-6 text-gray-500">
               {editing
                 ? "Update the information CareerPilot uses to personalize your career journey."
                 : "Your academic background, career goals and professional information in one place."}
             </p>
           </div>
-
-          {/* EDIT / CANCEL */}
 
           <button
             type="button"
@@ -439,7 +454,7 @@ const handleSubmit = async (e) => {
 
         <form
           onSubmit={handleSubmit}
-          className="space-y-6"
+          className="space-y-4"
         >
 
           {/* ================================= */}
@@ -447,128 +462,125 @@ const handleSubmit = async (e) => {
           {/* ================================= */}
 
           <ProfileCard
-  icon={<User size={18} />}
-  title="Personal Information"
-  description="Your basic profile details"
->
-  <div className="flex flex-col gap-6 sm:flex-row sm:items-center">
+            icon={<User size={18} />}
+            title="Personal Information"
+            description="Your basic profile details"
+          >
+            <div className="flex flex-col gap-5 sm:flex-row sm:items-center">
 
-    {/* AVATAR */}
+              {/* AVATAR */}
 
-    <div className="relative shrink-0">
+              <div className="relative shrink-0">
+                <button
+                  type="button"
+                  onClick={() =>
+                    fileInputRef.current?.click()
+                  }
+                  disabled={uploadingPicture}
+                  className="group relative flex h-24 w-24 items-center justify-center overflow-hidden rounded-3xl border border-white/[0.08] bg-gradient-to-br from-violet-600/20 to-cyan-500/10"
+                >
+                  {profile.profilePicture ? (
+                    <img
+                      src={profile.profilePicture}
+                      alt="Profile"
+                      className="h-full w-full object-cover"
+                    />
+                  ) : (
+                    <span className="text-3xl font-semibold text-violet-300">
+                      {profile.fullName
+                        ?.charAt(0)
+                        ?.toUpperCase() || "U"}
+                    </span>
+                  )}
 
-      <button
-        type="button"
-        onClick={() => fileInputRef.current?.click()}
-        disabled={uploadingPicture}
-        className="group relative flex h-24 w-24 items-center justify-center overflow-hidden rounded-3xl border border-white/[0.08] bg-gradient-to-br from-violet-600/20 to-cyan-500/10"
-      >
-        {profile.profilePicture ? (
-          <img
-            src={profile.profilePicture}
-            alt="Profile"
-            className="h-full w-full object-cover"
-          />
-        ) : (
-          <span className="text-3xl font-semibold text-violet-300">
-            {profile.fullName
-              ?.charAt(0)
-              ?.toUpperCase() || "U"}
-          </span>
-        )}
+                  <div className="absolute inset-0 flex items-center justify-center bg-black/50 opacity-0 transition group-hover:opacity-100">
+                    <Camera
+                      size={20}
+                      className="text-white"
+                    />
+                  </div>
+                </button>
 
-        {/* Hover overlay */}
+                <button
+                  type="button"
+                  onClick={() =>
+                    fileInputRef.current?.click()
+                  }
+                  disabled={uploadingPicture}
+                  className="absolute -bottom-0.5 -right-2 flex h-9 w-9 items-center justify-center rounded-xl border border-[#070914] bg-violet-600 text-white transition hover:bg-violet-500 disabled:opacity-50"
+                >
+                  {uploadingPicture ? (
+                    <Loader2
+                      size={15}
+                      className="animate-spin"
+                    />
+                  ) : (
+                    <Camera size={16} />
+                  )}
+                </button>
 
-        <div className="absolute inset-0 flex items-center justify-center bg-black/50 opacity-0 transition group-hover:opacity-100">
-          <Camera
-            size={20}
-            className="text-white"
-          />
-        </div>
-      </button>
+                {editing &&
+                  profile.profilePicture && (
+                    <button
+                      type="button"
+                      onClick={
+                        handleRemoveProfilePicture
+                      }
+                      disabled={uploadingPicture}
+                      className="mt-2 flex h-8 w-8 items-center justify-center rounded-lg border border-red-500/20 bg-red-500/10 text-red-300 transition hover:bg-red-500/20 disabled:opacity-50"
+                    >
+                      <Trash2 size={12} />
+                    </button>
+                  )}
 
-      {/* Camera button */}
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/png,image/jpeg,image/webp"
+                  onChange={
+                    handleProfilePictureChange
+                  }
+                  className="hidden"
+                />
+              </div>
 
-      <button
-        type="button"
-        onClick={() => fileInputRef.current?.click()}
-        disabled={uploadingPicture}
-        className="absolute -bottom-0.5 -right-2 flex h-9 w-9 items-center justify-center rounded-xl border border-[#070914] bg-violet-600 text-white transition hover:bg-violet-500 disabled:opacity-50"
-      >
-        {uploadingPicture ? (
-          <Loader2
-            size={15}
-            className="animate-spin"
-          />
-        ) : (
-          <Camera size={16} />
-        )}
-      </button>
+              {/* NAME + EMAIL */}
 
-     {/* Remove button - only visible in edit mode */}
-{editing && profile.profilePicture && (
-  <button
-    type="button"
-    onClick={handleRemoveProfilePicture}
-    disabled={uploadingPicture}
-    className="mt-3  flex h-9 w-9  items-center justify-center gap-1.5 rounded-lg border border-red-500/20 bg-red-500/10 px-2 py-1.5 text-xs font-medium text-red-300 transition hover:bg-red-500/20 disabled:opacity-50"
-  >
-    <Trash2 size={10} />
-  </button>
-)}
+              <div className="grid flex-1 gap-4 sm:grid-cols-2">
+                <Input
+                  label="Full Name"
+                  name="fullName"
+                  value={profile.fullName}
+                  onChange={handleChange}
+                  placeholder="Your full name"
+                  disabled={!editing}
+                />
 
-      {/* Hidden file input */}
-
-      <input
-        ref={fileInputRef}
-        type="file"
-        accept="image/png,image/jpeg,image/webp"
-        onChange={handleProfilePictureChange}
-        className="hidden"
-      />
-
-    </div>
-
-    {/* NAME + EMAIL */}
-
-    <div className="grid flex-1 gap-5 sm:grid-cols-2">
-
-      <Input
-        label="Full Name"
-        name="fullName"
-        value={profile.fullName}
-        onChange={handleChange}
-        placeholder="Your full name"
-        disabled={!editing}
-      />
-
-      <Input
-        label="Email"
-        name="email"
-        value={profile.email}
-        onChange={handleChange}
-        placeholder="you@example.com"
-        type="email"
-        disabled
-      />
-
-    </div>
-
-  </div>
-</ProfileCard>
+                <Input
+                  label="Email"
+                  name="email"
+                  value={profile.email}
+                  onChange={handleChange}
+                  placeholder="you@example.com"
+                  type="email"
+                  disabled
+                />
+              </div>
+            </div>
+          </ProfileCard>
 
           {/* ================================= */}
           {/* CAREER */}
           {/* ================================= */}
 
           <ProfileCard
-            icon={<BriefcaseBusiness size={18} />}
+            icon={
+              <BriefcaseBusiness size={18} />
+            }
             title="Career Goals"
             description="Tell CareerPilot where you want to go"
           >
-
-            <div className="grid gap-5 sm:grid-cols-2">
-
+            <div className="grid gap-4 sm:grid-cols-2">
               <Input
                 label="Dream Company"
                 name="dreamCompany"
@@ -604,9 +616,7 @@ const handleSubmit = async (e) => {
                 placeholder="Hybrid"
                 disabled={!editing}
               />
-
             </div>
-
           </ProfileCard>
 
           {/* ================================= */}
@@ -618,9 +628,7 @@ const handleSubmit = async (e) => {
             title="Technical Skills"
             description="Skills you've selected during onboarding"
           >
-
             <div className="flex flex-wrap gap-2">
-
               {profile.skills?.length > 0 ? (
                 profile.skills.map((skill) => (
                   <span
@@ -635,9 +643,7 @@ const handleSubmit = async (e) => {
                   No skills added yet.
                 </p>
               )}
-
             </div>
-
           </ProfileCard>
 
           {/* ================================= */}
@@ -649,9 +655,7 @@ const handleSubmit = async (e) => {
             title="Interests"
             description="Areas you're interested in"
           >
-
             <div className="flex flex-wrap gap-2">
-
               {profile.interests?.length > 0 ? (
                 profile.interests.map((interest) => (
                   <span
@@ -666,9 +670,7 @@ const handleSubmit = async (e) => {
                   No interests added yet.
                 </p>
               )}
-
             </div>
-
           </ProfileCard>
 
           {/* ================================= */}
@@ -680,8 +682,7 @@ const handleSubmit = async (e) => {
             title="Professional Presence"
             description="Your professional and coding profiles"
           >
-
-            <div className="space-y-5">
+            <div className="space-y-4">
 
               <SocialInput
                 icon={<FaLinkedin size={18} />}
@@ -713,8 +714,7 @@ const handleSubmit = async (e) => {
                 disabled={!editing}
               />
 
-              <div className="grid gap-5 sm:grid-cols-2">
-
+              <div className="grid gap-4 sm:grid-cols-2">
                 <Input
                   label="LeetCode"
                   name="leetcode"
@@ -750,11 +750,8 @@ const handleSubmit = async (e) => {
                   placeholder="Username"
                   disabled={!editing}
                 />
-
               </div>
-
             </div>
-
           </ProfileCard>
 
           {/* ================================= */}
@@ -763,11 +760,16 @@ const handleSubmit = async (e) => {
 
           {editing && (
             <motion.div
-              initial={{ opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="flex justify-end gap-3 pt-2"
+              initial={{
+                opacity: 0,
+                y: 8,
+              }}
+              animate={{
+                opacity: 1,
+                y: 0,
+              }}
+              className="flex justify-end gap-3 pt-1"
             >
-
               <button
                 type="button"
                 onClick={() => {
@@ -790,25 +792,19 @@ const handleSubmit = async (e) => {
                     : "bg-gradient-to-r from-violet-600 to-cyan-500 shadow-violet-900/20 hover:shadow-violet-900/40"
                 }`}
               >
-
                 <Save size={17} />
 
                 {saving
                   ? "Saving..."
                   : "Save Changes"}
-
               </motion.button>
-
             </motion.div>
           )}
-
         </form>
-
       </div>
     </main>
   );
 }
-
 
 // ==========================================
 // PROFILE CARD
@@ -822,14 +818,20 @@ function ProfileCard({
 }) {
   return (
     <motion.section
-      initial={{ opacity: 0, y: 12 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.45 }}
-      className="rounded-3xl border border-white/[0.07] bg-[#0D0F18] p-6 sm:p-7"
+      initial={{
+        opacity: 0,
+        y: 12,
+      }}
+      animate={{
+        opacity: 1,
+        y: 0,
+      }}
+      transition={{
+        duration: 0.45,
+      }}
+      className="rounded-3xl border border-white/[0.07] bg-[#0D0F18] p-5 sm:p-6"
     >
-
-      <div className="mb-6 flex items-start gap-3">
-
+      <div className="mb-5 flex items-start gap-3">
         <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-violet-500/10 text-violet-300">
           {icon}
         </div>
@@ -839,19 +841,16 @@ function ProfileCard({
             {title}
           </h2>
 
-          <p className="mt-1 text-xs text-gray-600">
+          <p className="mt-0.5 text-xs text-gray-600">
             {description}
           </p>
         </div>
-
       </div>
 
       {children}
-
     </motion.section>
   );
 }
-
 
 // ==========================================
 // INPUT
@@ -868,8 +867,7 @@ function Input({
 }) {
   return (
     <div>
-
-      <label className="mb-2 block text-xs font-medium text-gray-400">
+      <label className="mb-1.5 block text-xs font-medium text-gray-400">
         {label}
       </label>
 
@@ -886,11 +884,9 @@ function Input({
             : "border-white/[0.07] bg-white/[0.025] text-white placeholder:text-gray-700 focus:border-violet-500/50 focus:bg-white/[0.04] focus:ring-1 focus:ring-violet-500/20"
         }`}
       />
-
     </div>
   );
 }
-
 
 // ==========================================
 // SOCIAL INPUT
@@ -907,8 +903,7 @@ function SocialInput({
 }) {
   return (
     <div>
-
-      <label className="mb-2 block text-xs font-medium text-gray-400">
+      <label className="mb-1.5 block text-xs font-medium text-gray-400">
         {label}
       </label>
 
@@ -919,7 +914,6 @@ function SocialInput({
             : "border-white/[0.07] bg-white/[0.025] focus-within:border-violet-500/50 focus-within:ring-1 focus-within:ring-violet-500/20"
         }`}
       >
-
         <div className="pl-4 text-gray-500">
           {icon}
         </div>
@@ -933,9 +927,7 @@ function SocialInput({
           disabled={disabled}
           className="w-full bg-transparent px-3 py-3 text-sm text-white outline-none placeholder:text-gray-700 disabled:cursor-default disabled:text-gray-400"
         />
-
       </div>
-
     </div>
   );
 }
