@@ -513,7 +513,7 @@ Open another terminal.
 From the project root:
 
 ```bash
-cd CAREERPILOT-2.O/client
+cd CAREERPILOT-AI/client
 ```
 
 Start the frontend:
@@ -643,7 +643,7 @@ Potential future improvements include:
 
 GitHub Repository:
 
-[https://github.com/rashich-18/CAREERPILOT-2.O.git](https://github.com/rashich-18/CAREERPILOT-2.O.git)
+[https://github.com/rashich-18/CAREERPILOT-AI.git](https://github.com/rashich-18/CAREERPILOT-AI.git)
 
 ---
 
