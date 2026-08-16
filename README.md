@@ -382,13 +382,13 @@ Install the following:
 ## 2. Clone the Repository
 
 ```bash
-git clone https://github.com/rashich-18/CAREERPILOT-2.O.git
+git clone https://github.com/rashich-18/CAREERPILOT-AI.git
 ```
 
 Move into the project:
 
 ```bash
-cd CAREERPILOT-2.O
+cd CAREERPILOT-AI
 ```
 
 ---
